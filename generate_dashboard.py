@@ -40,6 +40,41 @@ WMM_KEYWORDS = [
     "bank of america chicago marathon", "tokyo marathon",
 ]
 
+# --- Circuit definitions ---
+# EMC: European Marathon Classics — matched by city (marathon distance only)
+EMC_CITIES = {"rome", "vienna", "vienne", "madrid", "london", "londres",
+              "copenhagen", "copenhague", "warsaw", "varsovie",
+              "lisbon", "lisbonne", "frankfurt"}
+# L5G: Las 5 Grandes — 5 grands marathons espagnols, matched by city (marathon distance only)
+L5G_CITIES = {"sevilla", "seville", "séville", "madrid",
+              "barcelona", "barcelone", "valencia", "valence", "bilbao"}
+
+CIRCUIT_COLORS = {
+    "WMM": "#38BDF8",
+    "EMC": "#8B5CF6",
+    "RNR": None,  # secondary color of the event's distance
+    "L5G": "#7C3AED",
+}
+
+def compute_circuits(race_name, distance, city):
+    """Return list of circuit codes for a given event."""
+    circuits = []
+    rl = race_name.lower()
+    cl = city.lower()
+    # WMM
+    if any(k in rl for k in WMM_KEYWORDS):
+        circuits.append("WMM")
+    # EMC — marathon distance, European cities
+    if distance == "MARATHON" and cl in EMC_CITIES:
+        circuits.append("EMC")
+    # RNR — Rock 'n' Roll in the name
+    if "rock" in rl and "roll" in rl:
+        circuits.append("RNR")
+    # L5G — marathon distance, Spanish cities
+    if distance == "MARATHON" and cl in L5G_CITIES:
+        circuits.append("L5G")
+    return circuits
+
 
 def fmt_time(val):
     if val is None or (isinstance(val, float) and pd.isna(val)): return None
@@ -157,10 +192,12 @@ def load_finishers():
                     first_yr = yr
                 break  # stop at first non-x year regardless
         city = str(r.get("City", "")).strip()
+        dist = str(r.get("Distance", "")).strip()
+        circ = compute_circuits(race, dist, city)
         rows.append({"p": str(r.get("Période", "")).strip(), "c": city,
-                     "d": str(r.get("Distance", "")).strip(), "r": race,
+                     "d": dist, "r": race,
                      "rg": get_region(city),
-                     "hist": hist, "fy": first_yr})
+                     "hist": hist, "fy": first_yr, "ci": circ})
     print(f"  Finishers  : {len(rows)} courses")
     return rows
 
@@ -338,10 +375,15 @@ def build_times_db(md, sd):
 
 JS_LOGIC = '''function isWmm(r){var l=r.toLowerCase();return WMM_KEYWORDS.some(function(k){return l.indexOf(k)>=0;});}
 function isLight(){return document.documentElement.hasAttribute('data-theme');}
-var LIGHT_MAP={'#38BDF8':'#0B7BC0','#FCDB00':'#A88F00','#5C00D4':'#4800A8','#9B6FFF':'#6B3FCC','#FF8A50':'#CC5A20','#5CDFA0':'#2BA368','#F472B6':'#C04080','#FF4A6B':'#CC2040','#22C55E':'#1A8A42','#2DBF7E':'#1F8A5A','#FF6B9D':'#CC3870'};
+var LIGHT_MAP={'#38BDF8':'#0B7BC0','#FCDB00':'#A88F00','#5C00D4':'#4800A8','#9B6FFF':'#6B3FCC','#FF8A50':'#CC5A20','#5CDFA0':'#2BA368','#F472B6':'#C04080','#FF4A6B':'#CC2040','#22C55E':'#1A8A42','#2DBF7E':'#1F8A5A','#FF6B9D':'#CC3870','#8B5CF6':'#6D3FCC','#7C3AED':'#5C28BB'};
 function lc(c){return isLight()?(LIGHT_MAP[c]||c):c;}
 function col(r){return lc(isWmm(r)?'#38BDF8':'#5C00D4');}
 function colDist(r){return lc(isWmm(r.r)?'#38BDF8':r.d==='10KM'?'#5CDFA0':r.d==='SEMI'?'#FF8A50':r.d==='AUTRE'?'#F472B6':'#9B6FFF');}
+var CIRC_COLORS={WMM:'#38BDF8',EMC:'#8B5CF6',L5G:'#7C3AED'};
+var CIRC_DIST_SEC={MARATHON:'#8B5CF6',SEMI:'#FFB088','10KM':'#88EEBB',AUTRE:'#FF99CC'};
+function circColor(code,dist){if(code==='RNR')return lc(CIRC_DIST_SEC[dist]||'#8B5CF6');return lc(CIRC_COLORS[code]||'#8B5CF6');}
+function circBadges(r){var ci=r.ci||[];if(!ci.length)return'';return ci.map(function(c){var col=circColor(c,r.d);return'<span class="circ-badge" style="border:1px solid '+col+'40;color:'+col+';background:transparent;font-size:9px;padding:1px 6px;border-radius:100px;text-transform:uppercase;margin-left:4px;white-space:nowrap">'+c+'</span>';}).join('');}
+function hasCircuit(r,code){return(r.ci||[]).indexOf(code)>=0;}
 function colByName(name){var r=RAW.find(function(x){return x.r===name;});return r?colDist(r):lc('#9B6FFF');}
 function toMin(t){if(!t)return null;var p=String(t).split(':');if(p.length===3)return parseInt(p[0])*60+parseInt(p[1])+parseInt(p[2])/60;return null;}
 function fmt(n){if(n===-1)return'Annul\u00e9';if(n===-2)return'Elite';if(n===-3)return'';if(!n||isNaN(n))return'\u2014';return n>=1000?(n/1000).toFixed(1)+'k':n.toString();}
@@ -528,7 +570,7 @@ function updateInsights(){
     var yrsWithData=Object.keys(r.hist||{}).filter(function(y){var v=(r.hist||{})[y];return v&&v>0;}).length;
     return yrsWithData>=3;
   });
-  var withDelta=items.map(function(r){var a=hv(r,fromYr),b=hv(r,toYr);return{name:r.r,d:r.d,v3:a,vt:b,pct:((b-a)/a*100)};});
+  var withDelta=items.map(function(r){var a=hv(r,fromYr),b=hv(r,toYr);return{name:r.r,d:r.d,ci:r.ci||[],v3:a,vt:b,pct:((b-a)/a*100)};});
   withDelta.sort(function(a,b){return b.pct-a.pct;});
   var top5=withDelta.slice(0,5);
   var bot5=withDelta.slice(-5).reverse();
@@ -545,7 +587,7 @@ function updateInsights(){
       var txtCls=isUp?'ins-pct-up':'ins-pct-down';
       html+='<div class="ins-row" style="cursor:pointer;position:relative;border-radius:6px;padding:8px 10px;" data-event="'+r.name.replace(/"/g,'&quot;')+'" onclick="insNav(this.dataset.event)">'
         +'<div style="position:absolute;left:0;top:0;bottom:0;width:'+barW+'%;background:'+barCol+';border-radius:6px;pointer-events:none;"></div>'
-        +'<div style="position:relative;display:flex;align-items:center;flex:1;min-width:0;">'+distBadge(r.d)+'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+r.name+'</span></div>'
+        +'<div style="position:relative;display:flex;align-items:center;flex:1;min-width:0;">'+distBadge(r.d)+circBadges(r)+'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+r.name+'</span></div>'
         +'<div class="'+txtCls+'" style="position:relative;flex-shrink:0;margin-left:12px;">'+sign+r.pct.toFixed(1)+'%</div>'
         +'</div>';
     });
@@ -657,13 +699,13 @@ function ovSelect(idx){
   if(nYears>0&&nYears<3){banner='<div style="font-size:12px;color:var(--text3);padding:8px 12px;background:var(--bg3);border-radius:6px;margin-bottom:1rem">Donnees disponibles depuis '+firstYr+' ('+nYears+' edition'+(nYears>1?'s':'')+')</div>';}
 
   var badgeCol=ac;
-  var wmmBadge=isWmm(ev.r)?' <span class="ov-badge" style="border:1px solid #38BDF840;color:#38BDF8;background:transparent;font-size:10px;padding:2px 8px;border-radius:100px;">WMM</span>':'';
+  var circHtml=circBadges(ev);
   var html='<div class="ov-card">'
     +'<div class="ov-card-header"><div>'
     +'<div class="ov-card-title">'+ev.r+'</div>'
     +'<div class="ov-card-meta"><span>'+ev.c+' &middot; '+ev.p+'</span></div>'
     +'</div>'
-    +'<span class="ov-badge" style="border:1px solid '+badgeCol+'40;color:'+badgeCol+';background:transparent;font-size:10px;padding:3px 10px;border-radius:100px;">'+dl+'</span>'+wmmBadge
+    +'<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap"><span class="ov-badge" style="border:1px solid '+badgeCol+'40;color:'+badgeCol+';background:transparent;font-size:10px;padding:3px 10px;border-radius:100px;">'+dl+'</span>'+circHtml+'</div>'
     +'</div>'
     +banner
     +stats
@@ -867,8 +909,9 @@ function updateBiggest(){
     var valInside=pct>25;
     var valLabel=fmtFull(v);
     var idx=RAW.indexOf(r);
+    var cBdg=circBadges(r);
     html+='<div class="time-bar-row bt-row" data-name="'+r.r.replace(/"/g,'&quot;')+'" data-city="'+(r.c||'').replace(/"/g,'&quot;')+'" data-val="'+valLabel+' finishers" data-idx="'+idx+'" onclick="biggestClick('+idx+')">'
-      +'<div class="time-bar-label" title="'+r.r+'"><span class="time-bar-rank">'+rank+'</span> \u00b7 '+r.r+'</div>'
+      +'<div class="time-bar-label" title="'+r.r+'"><span class="time-bar-rank">'+rank+'</span> \u00b7 '+r.r+cBdg+'</div>'
       +'<div class="time-bar-track"><div class="time-bar-fill" style="width:'+pct+'%;background:'+barCol+'cc">'+(valInside?valLabel:'')+'</div></div>'
       +'<div class="time-bar-val">'+(valInside?'':valLabel)+'</div></div>';
   });
@@ -978,11 +1021,11 @@ function filterTable(){
     if(month!=='ALL'&&r.p!==month)return false;
     if(region!=='ALL'&&r.rg!==region)return false;
     if(q&&r.r.toLowerCase().indexOf(q)<0&&r.c.toLowerCase().indexOf(q)<0)return false;
-    // Badge filter
+    // Circuit filter
     if(badge!=='ALL'){
-      var w=isWmm(r.r);
-      if(badge==='WMM'&&!w)return false;
-      if(badge==='OTHER'&&w)return false;
+      var ci=r.ci||[];
+      if(badge==='NONE'){if(ci.length>0)return false;}
+      else{if(ci.indexOf(badge)<0)return false;}
     }
     // Size filter (based on peak finishers across visible years)
     if(sizeFilter!=='ALL'){
@@ -1018,12 +1061,11 @@ function filterTable(){
     var yrKeys=globalYears.filter(function(y){var v=(r.hist||{})[y];return v&&v>0;});
     var firstYr=yrKeys[0],lastYr=yrKeys[yrKeys.length-1];
     var tSub=firstYr&&lastYr&&firstYr!==lastYr?'<div style="font-size:9px;color:var(--text3);margin-top:1px">'+firstYr+'\u2192'+lastYr+'</div>':'';
-    var wmm=isWmm(r.r);
     var bl=r.d==='MARATHON'?'Marathon':r.d==='SEMI'?'Semi':r.d==='AUTRE'?'Autre':'10 km';
     var raceColor=colDist(r);
-    var badgeLabel=wmm?bl+' - WMM':bl;
+    var cBadges=circBadges(r);
     html+='<tr><td>'+r.p+'</td><td>'+r.c+'</td>'
-      +'<td><span class="badge" style="background:'+raceColor+'18;color:'+raceColor+'">'+badgeLabel+'</span></td>'
+      +'<td><span class="badge" style="background:'+raceColor+'18;color:'+raceColor+'">'+bl+'</span>'+cBadges+'</td>'
       +'<td style="color:'+raceColor+'" title="'+r.r+'">'+r.r+'</td>'
       +globalYears.map(function(y){var v=(r.hist||{})[y];var isFirst=r.fy&&y===r.fy;var starHtml=isFirst?'<span style="position:absolute;top:1px;left:2px;font-size:7px;color:'+raceColor+';opacity:0.7">\u2605</span>':'';if(v===-3)return'<td style="color:var(--text3);opacity:0.2">\u00b7</td>';if(v===-1)return'<td style="color:#FF4A6B;font-size:10px;font-style:italic;position:relative">'+starHtml+'Annul\u00e9</td>';if(v===-2)return'<td style="color:'+raceColor+';font-size:10px;font-style:italic;position:relative">'+starHtml+'Elite Only</td>';return'<td style="'+(v?'color:var(--text)':'')+';position:relative">'+starHtml+(v?fmtFull(v):'\u2014')+'</td>';}).join('')
       +'<td style="color:'+tc+'">'+tStr+tSub+'</td></tr>';
@@ -1423,8 +1465,8 @@ function renderCompare(){
 
   var distA=a.d==='MARATHON'?'Marathon':a.d==='SEMI'?'Semi-marathon':a.d==='AUTRE'?'Autre':'10 km';
   var distB=b.d==='MARATHON'?'Marathon':b.d==='SEMI'?'Semi-marathon':b.d==='AUTRE'?'Autre':'10 km';
-  var statA=isWmm(a.r)?'World Marathon Majors':'\u2014';
-  var statB=isWmm(b.r)?'World Marathon Majors':'\u2014';
+  var statA=(a.ci||[]).length?(a.ci||[]).join(' / '):'\u2014';
+  var statB=(b.ci||[]).length?(b.ci||[]).join(' / '):'\u2014';
 
   var avgA=tdA?tdA.avg:null, avgB=tdB?tdB.avg:null;
   var menA=wrA&&wrA.men?wrA.men:(tdA?tdA.men:null);
@@ -1461,9 +1503,9 @@ function renderCompare(){
 
   var html='<div class="cmp-wrap" style="--cmp-col-a:'+colA+';--cmp-col-b:'+colB+';">'
     +'<div class="cmp-header">'
-    +'<div class="cmp-header-cell"><div class="cmp-race-name" style="color:'+colA+'">'+a.r+'</div><div class="cmp-race-meta">'+a.c+' &middot; '+a.p+' &middot; '+distA+'</div></div>'
+    +'<div class="cmp-header-cell"><div class="cmp-race-name" style="color:'+colA+'">'+a.r+'</div><div class="cmp-race-meta">'+a.c+' &middot; '+a.p+' &middot; '+distA+circBadges(a)+'</div></div>'
     +'<div class="cmp-header-cell ctr"><div class="cmp-mid-label">Categorie</div></div>'
-    +'<div class="cmp-header-cell" style="text-align:right"><div class="cmp-race-name" style="color:'+colB+'">'+b.r+'</div><div class="cmp-race-meta">'+b.c+' &middot; '+b.p+' &middot; '+distB+'</div></div>'
+    +'<div class="cmp-header-cell" style="text-align:right"><div class="cmp-race-name" style="color:'+colB+'">'+b.r+'</div><div class="cmp-race-meta">'+b.c+' &middot; '+b.p+' &middot; '+distB+circBadges(b)+'</div></div>'
     +'</div>';
 
   html+=cmpR(finLblA,finLblB,'Finishers',winFin,'','');
@@ -2185,9 +2227,9 @@ HTML_BODY = """
         <option value="ALL">Toutes</option><option>Europe</option><option>Am&eacute;rique du Nord</option><option>Asie</option><option>Oc&eacute;anie</option><option>Moyen-Orient</option><option>Am&eacute;rique du Sud</option><option>Afrique</option>
       </select>
     </div>
-    <div class="ctrl-group"><span class="ctrl-label">Badge</span>
+    <div class="ctrl-group"><span class="ctrl-label">Circuit</span>
       <select id="badge-data" onchange="filterTable()">
-        <option value="ALL">Tous</option><option value="WMM">WMM</option><option value="OTHER">Autre</option>
+        <option value="ALL">Tous</option><option value="WMM">WMM</option><option value="EMC">EMC</option><option value="RNR">RNR</option><option value="L5G">L5G</option><option value="NONE">Sans circuit</option>
       </select>
     </div>
     <div class="ctrl-group"><span class="ctrl-label">Taille</span>
@@ -2302,11 +2344,13 @@ def main():
         from datapace.data_loader import load_all
         print("\nLecture des donnees (SQLite)...")
         finishers, biggest, md, sd, tdb, winners, sp_avg = load_all(_DB_PATH)
-        # Add region field to finishers and biggest
+        # Add region and circuit fields to finishers and biggest
         for row in finishers:
             row["rg"] = get_region(row.get("c", ""))
+            row["ci"] = compute_circuits(row.get("r", ""), row.get("d", ""), row.get("c", ""))
         for row in biggest:
             row["rg"] = get_region(row.get("c", ""))
+            row["ci"] = compute_circuits(row.get("r", ""), row.get("d", ""), row.get("c", ""))
     else:
         print("Source : fichiers Excel (pas de BDD trouvee)")
         check_files()
