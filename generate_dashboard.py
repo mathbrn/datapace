@@ -1489,15 +1489,14 @@ CSS = """@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;50
 body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,sans-serif;padding:0;-webkit-font-smoothing:antialiased;}
 .dash-nav{position:fixed;top:0;left:0;right:0;z-index:200;height:56px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,8,8,.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
 .dash-nav-left{display:flex;align-items:center;gap:12px;}
-.dash-nav-logo{height:26px;filter:invert(1);}
-[data-theme="light"] .dash-nav-logo{filter:none;}
+.dash-nav-logo{height:28px;border-radius:50%;}
+
 .dash-nav-sep{width:1px;height:20px;background:var(--border2);}
 .dash-nav-title{font-size:13px;font-weight:500;color:var(--text2);}
 .dash-nav-right{display:flex;align-items:center;gap:12px;}
 .dash-body{padding:72px 24px 24px;}
 .dp-footer{padding:32px 24px;border-top:1px solid var(--border);text-align:center;margin-top:2rem;}
-.dp-footer-logo{height:22px;filter:invert(1);margin:0 auto 12px;}
-[data-theme="light"] .dp-footer-logo{filter:none;}
+.dp-footer-logo{height:24px;border-radius:50%;margin:0 auto 12px;}
 .dp-footer-links{display:flex;justify-content:center;gap:20px;font-size:12px;color:var(--text3);flex-wrap:wrap;margin-bottom:10px;}
 .dp-footer-links a{color:var(--text3);text-decoration:none;transition:color .2s;}
 .dp-footer-links a:hover{color:var(--text);}
@@ -1674,7 +1673,7 @@ tr:hover td{background:var(--bg2);color:var(--text);}
 HTML_BODY = """
 <nav class="dash-nav">
   <div class="dash-nav-left">
-    <a href="index.html"><img src="assets/logo_DataPace_text.png" alt="DataPace" class="dash-nav-logo"></a>
+    <a href="index.html"><img src="assets/Logo_DataPace_primary.png" alt="DataPace" class="dash-nav-logo"></a>
     <div class="dash-nav-sep"></div>
     <span class="dash-nav-title">Dashboard</span>
   </div>
@@ -1963,7 +1962,7 @@ HTML_BODY = """
 </div>
 </div><!-- /dash-body -->
 <footer class="dp-footer">
-  <img src="assets/logo_DataPace_text.png" alt="DataPace" class="dp-footer-logo">
+  <img src="assets/Logo_DataPace_primary.png" alt="DataPace" class="dp-footer-logo">
   <div class="dp-footer-links">
     <a href="mailto:mathis.brun@orange.fr">mathis.brun@orange.fr</a>
     <a href="https://www.linkedin.com/in/mathis-brun/" target="_blank">LinkedIn</a>
