@@ -94,15 +94,30 @@ textarea{resize:vertical;min-height:90px;}
 
 /* ── Separator ── */
 .sep{height:1px;max-width:80px;margin:0 auto;background:linear-gradient(90deg,transparent,#2d2d35,transparent);}
+
+/* ── Navbar ── */
+.navbar{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2rem;display:flex;align-items:center;gap:10px;background:rgba(10,10,10,.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(30,32,40,.5);}
+.navbar-logo{width:40px;height:40px;border-radius:50%;}
+.navbar-name{font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:16px;color:#e6edf3;letter-spacing:-.02em;}
+
+/* ── Hero logo ── */
+.hero-logo{width:90px;height:90px;border-radius:50%;margin-bottom:1.5rem;}
 </style>
 </head>
 <body>
+
+<!-- ════ NAVBAR ════ -->
+<nav class="navbar f0">
+  <img src="assets/Logo_DataPace_primary.png" alt="DataPace" class="navbar-logo">
+  <span class="navbar-name">DataPace</span>
+</nav>
 
 <!-- ════ HERO ════ -->
 <section class="hero">
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
   <div class="orb orb-3"></div>
+  <img src="assets/Logo_DataPace_primary.png" alt="DataPace" class="hero-logo f0">
   <h1 class="hero-title f0">DataPace</h1>
   <p class="hero-sub f1">L'intelligence data du running mondial</p>
   <a href="datapace_dashboard.html" class="hero-cta f2">
