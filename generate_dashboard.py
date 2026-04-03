@@ -497,16 +497,35 @@ function toggleTheme(){
 (function(){var saved=localStorage.getItem('dp-theme');if(saved==='light'){document.documentElement.setAttribute('data-theme','light');var b=document.getElementById('theme-btn');if(b)b.innerHTML='&#x2600; Light';}})();
 
 function switchTab(name){
-  var names=['data','overview','compare','trends','biggest','temps','winners','sponsoring'];
+  var names=['data','insights','overview','compare','trends','biggest','temps','winners','sponsoring'];
   document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',names[i]===name);});
   document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
   document.getElementById('panel-'+name).classList.add('active');
+  if(name==='insights')updateInsights();
   if(name==='trends')updateTrends();
   if(name==='biggest')updateBiggest();
   if(name==='temps')updateTemps();
   if(name==='winners')updateWinners();
   if(name==='data')filterTable();
   if(name==='sponsoring'&&!window._spInit){window._spInit=true;initSponsoring();}
+}
+function updateInsights(){
+  var items=RAW.filter(function(r){return r.y3&&r.y3>0&&r.y5&&r.y5>0&&!isNaN(r.y3)&&!isNaN(r.y5);});
+  var withDelta=items.map(function(r){return{name:r.r,d:r.d,v3:r.y3,v5:r.y5,pct:((r.y5-r.y3)/r.y3*100)};});
+  withDelta.sort(function(a,b){return b.pct-a.pct;});
+  var top5=withDelta.slice(0,5);
+  var bot5=withDelta.slice(-5).reverse();
+  function renderList(arr,el,isGrowth){
+    var html='';
+    arr.forEach(function(r){
+      var sign=r.pct>=0?'+':'';
+      var cls=r.pct>=0?'ins-pct-up':'ins-pct-down';
+      html+='<div class="ins-row"><div>'+r.name+'</div><div class="'+cls+'">'+sign+r.pct.toFixed(1)+'%</div></div>';
+    });
+    document.getElementById(el).innerHTML=html;
+  }
+  renderList(top5,'ins-growth',true);
+  renderList(bot5,'ins-decline',false);
 }
 
 function ovSearch(){
@@ -1470,9 +1489,23 @@ CSS = """*{box-sizing:border-box;margin:0;padding:0;}
 [data-theme="light"]{--bg:#f8f9fb;--bg2:#eef1f5;--bg3:#e4e8ee;--border:#c8ced6;--border2:#c8ced6;--text:#1a1d21;--text2:#3d454e;--text3:#636d78;--purple:#5C00D4;--yellow:#B8920A;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:1.5rem;}
 .dp-header{padding-bottom:1.25rem;border-bottom:.5px solid var(--border);margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:.5rem;}
-.dp-title{font-size:15px;font-weight:500;letter-spacing:.02em;}
-.dp-sub{font-size:12px;color:var(--text3);margin-top:4px;}
+.dp-brand{display:flex;align-items:center;gap:10px;}
+.dp-logo{font-size:22px;font-weight:700;color:#5C00D4;letter-spacing:-.02em;}
+.dp-logo span{color:var(--text);}
+.dp-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+.dp-contact{display:flex;align-items:center;gap:12px;font-size:11px;color:var(--text3);}
+.dp-contact a{color:#5C00D4;text-decoration:none;transition:opacity .2s;}
+.dp-contact a:hover{opacity:.7;}
 .dp-updated{font-size:11px;color:var(--text3);}
+.dp-footer{text-align:center;padding:2rem 0 1rem;font-size:11px;color:var(--text3);border-top:.5px solid var(--border);margin-top:2rem;}
+.ins-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+@media(max-width:700px){.ins-grid{grid-template-columns:1fr;}}
+.ins-card{background:var(--bg2);border-radius:8px;padding:1.25rem;}
+.ins-card-title{font-size:14px;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+.ins-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:.5px solid var(--border);font-size:13px;}
+.ins-row:last-child{border-bottom:none;}
+.ins-pct-up{color:#22C55E;font-weight:600;}
+.ins-pct-down{color:#EF4444;font-weight:600;}
 .tabs{display:flex;border-bottom:.5px solid var(--border);margin-bottom:1.5rem;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
 .tabs::-webkit-scrollbar{display:none;}
 .tab{padding:8px 14px;font-size:12px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;letter-spacing:.04em;text-transform:uppercase;transition:color .15s,border-color .15s;white-space:nowrap;}
@@ -1635,14 +1668,23 @@ tr:hover td{background:var(--bg2);color:var(--text);}
 
 HTML_BODY = """
 <div class="dp-header">
-  <div><div class="dp-title">Dashboard Running</div><div class="dp-sub">Grands evenements running mondiaux &middot; 2007-2026</div></div>
-  <div style="display:flex;align-items:center;gap:12px;">
+  <div class="dp-brand">
+    <div>
+      <div class="dp-logo">Data<span>Pace</span></div>
+      <div class="dp-sub">L'intelligence data du running mondial</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div class="dp-contact">
+      <a href="mailto:mathis.brun@orange.fr" title="Contact">mathis.brun@orange.fr</a>
+      <a href="https://www.linkedin.com/in/mathis-brun/" target="_blank" title="LinkedIn">LinkedIn</a>
+    </div>
     <div class="theme-toggle" onclick="toggleTheme()" id="theme-btn" title="Changer le theme">&#x263E; Dark</div>
-    <div class="dp-updated">Genere le {now}</div>
   </div>
 </div>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('data')">Tableau</div>
+  <div class="tab" onclick="switchTab('insights')">Insights</div>
   <div class="tab" onclick="switchTab('overview')">Vue d'ensemble</div>
   <div class="tab" onclick="switchTab('compare')">Comparer</div>
   <div class="tab" onclick="switchTab('trends')">Evolution</div>
@@ -1650,6 +1692,19 @@ HTML_BODY = """
   <div class="tab" onclick="switchTab('temps')">Temps moyen</div>
   <div class="tab" onclick="switchTab('winners')">Winners Times</div>
   <div class="tab" onclick="switchTab('sponsoring')">Sponsoring</div>
+</div>
+<div id="panel-insights" class="panel">
+  <div class="section-title">Insights &mdash; Tendances cles 2023 &rarr; 2025</div>
+  <div class="ins-grid">
+    <div class="ins-card">
+      <div class="ins-card-title">&#x1F4C8; Top 5 &mdash; Plus forte croissance</div>
+      <div id="ins-growth"></div>
+    </div>
+    <div class="ins-card">
+      <div class="ins-card-title">&#x1F4C9; Top 5 &mdash; Plus fort declin</div>
+      <div id="ins-decline"></div>
+    </div>
+  </div>
 </div>
 <div id="panel-overview" class="panel">
   <div class="ov-search-wrap"><span class="ov-search-icon">&#x2315;</span>
@@ -1693,7 +1748,7 @@ HTML_BODY = """
       </select>
     </div>
   </div>
-  <div class="section-title" id="trends-section-lbl">Evolution par evenement 2023-2025</div>
+  <div class="section-title" id="trends-section-lbl">Evolution par evenement 2023-2026</div>
   <div class="legend">
     <span class="leg-item"><span class="leg-dot" style="background:#9B6FFF"></span>Marathon</span>
     <span class="leg-item"><span class="leg-dot" style="background:#FF8A50"></span>Semi-marathon</span>
@@ -1903,7 +1958,8 @@ HTML_BODY = """
     </table>
   </div>
   <div class="count" style="display:flex;align-items:center;gap:10px"><span id="table-count"></span><a id="reset-filters" href="javascript:void(0)" onclick="resetFilters()" style="display:none;align-items:center;gap:4px;font-size:11px;color:var(--accent);text-decoration:none;cursor:pointer">\u21BA Reinitialiser les filtres</a></div>
-</div>"""
+</div>
+<div class="dp-footer">Donnees issues des sites officiels des evenements &middot; DataPace &copy; 2026</div>"""
 
 
 def load_sponsoring():
