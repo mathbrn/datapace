@@ -34,12 +34,6 @@ FILES = {
 }
 OUTPUT_FILE = SCRIPT_DIR / "datapace_dashboard.html"
 
-ASO_KEYWORDS = [
-    "schneider electric", "hoka semi de paris", "semi de paris",
-    "run in lyon", "beaujolais", "adidas 10k paris", "10k montmartre",
-    "cancer research", "asics ldnx", "adidas manchester",
-]
-
 WMM_KEYWORDS = [
     "tcs new york city marathon", "tcs london marathon", "boston marathon",
     "tcs sydney marathon", "bmw berlin marathon",
@@ -342,13 +336,12 @@ def build_times_db(md, sd):
     return db
 
 
-JS_LOGIC = '''function isAso(r){var l=r.toLowerCase();return ASO_KEYWORDS.some(function(k){return l.indexOf(k)>=0;});}
-function isWmm(r){var l=r.toLowerCase();return WMM_KEYWORDS.some(function(k){return l.indexOf(k)>=0;});}
+JS_LOGIC = '''function isWmm(r){var l=r.toLowerCase();return WMM_KEYWORDS.some(function(k){return l.indexOf(k)>=0;});}
 function isLight(){return document.documentElement.hasAttribute('data-theme');}
 var LIGHT_MAP={'#38BDF8':'#0B7BC0','#FCDB00':'#A88F00','#5C00D4':'#4800A8','#9B6FFF':'#6B3FCC','#FF8A50':'#CC5A20','#5CDFA0':'#2BA368','#F472B6':'#C04080','#FF4A6B':'#CC2040','#22C55E':'#1A8A42','#2DBF7E':'#1F8A5A','#FF6B9D':'#CC3870'};
 function lc(c){return isLight()?(LIGHT_MAP[c]||c):c;}
-function col(r){return lc(isWmm(r)?'#38BDF8':isAso(r)?'#FCDB00':'#5C00D4');}
-function colDist(r){return lc(isWmm(r.r)?'#38BDF8':isAso(r.r)?'#FCDB00':r.d==='10KM'?'#5CDFA0':r.d==='SEMI'?'#FF8A50':r.d==='AUTRE'?'#F472B6':'#9B6FFF');}
+function col(r){return lc(isWmm(r)?'#38BDF8':'#5C00D4');}
+function colDist(r){return lc(isWmm(r.r)?'#38BDF8':r.d==='10KM'?'#5CDFA0':r.d==='SEMI'?'#FF8A50':r.d==='AUTRE'?'#F472B6':'#9B6FFF');}
 function colByName(name){var r=RAW.find(function(x){return x.r===name;});return r?colDist(r):lc('#9B6FFF');}
 function toMin(t){if(!t)return null;var p=String(t).split(':');if(p.length===3)return parseInt(p[0])*60+parseInt(p[1])+parseInt(p[2])/60;return null;}
 function fmt(n){if(n===-1)return'Annul\u00e9';if(n===-2)return'Elite';if(n===-3)return'';if(!n||isNaN(n))return'\u2014';return n>=1000?(n/1000).toFixed(1)+'k':n.toString();}
@@ -552,7 +545,7 @@ function ovSearch(){
 function ovSelect(idx){
   document.querySelectorAll('.ov-result-item').forEach(function(el){el.classList.toggle('selected',parseInt(el.dataset.idx)===idx);});
   var ev=RAW[idx];
-  var ac=colDist(ev),aso=isAso(ev.r);
+  var ac=colDist(ev);
   var dl=ev.d==='MARATHON'?'Marathon':ev.d==='SEMI'?'Semi-marathon':ev.d==='AUTRE'?'Autre':'10 km';
   var histKeys=Object.keys(ev.hist||{}).map(Number).sort(function(a,b){return a-b;});
   var finHistory=histKeys.map(function(yr){return{yr:yr,v:(ev.hist||{})[yr]};}).filter(function(e){return e.v&&!isNaN(e.v);});
@@ -576,7 +569,7 @@ function ovSelect(idx){
     +'<div class="ov-card-title">'+ev.r+'</div>'
     +'<div class="ov-card-meta"><span>&#x1F4CD; '+ev.c+'</span><span>&#x1F4C5; '+ev.p+'</span></div>'
     +'</div>'
-    +(isWmm(ev.r)?'<span class="ov-badge" style="background:#38BDF818;color:#38BDF8">'+dl+' - World Marathon Majors</span>':'<span class="ov-badge" style="background:'+badgeBg+';color:'+badgeCol+'">'+dl+' - '+(aso?'ASO':'Autre')+'</span>')
+    +(isWmm(ev.r)?'<span class="ov-badge" style="background:#38BDF818;color:#38BDF8">'+dl+' - World Marathon Majors</span>':'<span class="ov-badge" style="background:'+badgeBg+';color:'+badgeCol+'">'+dl+'</span>')
     +'</div>'
     +'<div class="ov-stats">'
     +'<div class="ov-stat"><div class="ov-stat-label">'+finLbl+'</div><div class="ov-stat-value">'+finStr+'</div></div>'
@@ -746,7 +739,7 @@ function updateTemps(){
   var barsHtml='';
   displayed.forEach(function(d){
     var m=toMin(d.avg);var pct=m?((m-minM)/(maxM-minM+0.001)*75+5).toFixed(1):'0';
-    var barCol=isWmm(d.race)?'#38BDF8':isAso(d.race)?'#FCDB00':dist==='SEMI'?'#FF8A50':'#9B6FFF';
+    var barCol=isWmm(d.race)?'#38BDF8':dist==='SEMI'?'#FF8A50':'#9B6FFF';
     barsHtml+='<div class="time-bar-row"><div class="time-bar-label">'+d.race+'</div><div class="time-bar-track"><div class="time-bar-fill" style="width:'+(m?pct:0)+'%;background:'+barCol+'88"></div></div><div class="time-bar-val">'+(d.avg||'-')+'</div></div>';
   });
   document.getElementById('time-bars').innerHTML=barsHtml;
@@ -798,10 +791,9 @@ function filterTable(){
     if(q&&r.r.toLowerCase().indexOf(q)<0&&r.c.toLowerCase().indexOf(q)<0)return false;
     // Badge filter
     if(badge!=='ALL'){
-      var w=isWmm(r.r),a=isAso(r.r);
+      var w=isWmm(r.r);
       if(badge==='WMM'&&!w)return false;
-      if(badge==='ASO'&&!a)return false;
-      if(badge==='OTHER'&&(w||a))return false;
+      if(badge==='OTHER'&&w)return false;
     }
     // Size filter (based on peak finishers across visible years)
     if(sizeFilter!=='ALL'){
@@ -837,10 +829,10 @@ function filterTable(){
     var yrKeys=globalYears.filter(function(y){var v=(r.hist||{})[y];return v&&v>0;});
     var firstYr=yrKeys[0],lastYr=yrKeys[yrKeys.length-1];
     var tSub=firstYr&&lastYr&&firstYr!==lastYr?'<div style="font-size:9px;color:var(--text3);margin-top:1px">'+firstYr+'\u2192'+lastYr+'</div>':'';
-    var wmm=isWmm(r.r);var aso=isAso(r.r);
+    var wmm=isWmm(r.r);
     var bl=r.d==='MARATHON'?'Marathon':r.d==='SEMI'?'Semi':r.d==='AUTRE'?'Autre':'10 km';
     var raceColor=colDist(r);
-    var badgeLabel=wmm?bl+' - WMM':aso?bl+' - ASO':bl;
+    var badgeLabel=wmm?bl+' - WMM':bl;
     html+='<tr><td>'+r.p+'</td><td>'+r.c+'</td>'
       +'<td><span class="badge" style="background:'+raceColor+'18;color:'+raceColor+'">'+badgeLabel+'</span></td>'
       +'<td style="color:'+raceColor+'" title="'+r.r+'">'+r.r+'</td>'
@@ -1248,8 +1240,8 @@ function renderCompare(){
 
   var distA = a.d==='MARATHON'?'Marathon':a.d==='SEMI'?'Semi-marathon':a.d==='AUTRE'?'Autre':'10 km';
   var distB = b.d==='MARATHON'?'Marathon':b.d==='SEMI'?'Semi-marathon':b.d==='AUTRE'?'Autre':'10 km';
-  var asoA = isWmm(a.r)?'WMM':isAso(a.r)?'ASO':'Autre';
-  var asoB = isWmm(b.r)?'WMM':isAso(b.r)?'ASO':'Autre';
+  var asoA = isWmm(a.r)?'WMM':'';
+  var asoB = isWmm(b.r)?'WMM':'';
 
   var avgA = tdA?tdA.avg:null;
   var avgB = tdB?tdB.avg:null;
@@ -1532,7 +1524,6 @@ td{padding:7px 12px;border-bottom:.5px solid var(--border);color:var(--text2);}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:var(--bg2);color:var(--text);}
 .badge{font-size:10px;font-weight:500;padding:3px 10px;border-radius:100px;}
-.badge-aso{background:#FCDB0018;color:#FCDB00;}
 .badge-world{background:#5C00D418;color:#9B6FFF;}
 .badge-wmm{background:#38BDF818;color:#38BDF8;margin-left:4px;}
 .search-wrap{position:relative;flex:1;min-width:160px;}
@@ -1614,7 +1605,6 @@ tr:hover td{background:var(--bg2);color:var(--text);}
 #data-table.tbl-frozen td:not(.frozen-cell){white-space:nowrap;}
 .theme-toggle{background:var(--bg2);border:.5px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;color:var(--text2);transition:all .2s;user-select:none;}
 .theme-toggle:hover{color:var(--text);border-color:var(--purple);}
-[data-theme="light"] .badge-aso{background:#FCDB0030;color:#7A6200;}
 [data-theme="light"] .badge-world{background:#5C00D420;color:#4800A8;}
 [data-theme="light"] .badge-wmm{background:#0284C728;color:#025E87;}
 [data-theme="light"] .time-bar-track{background:var(--bg3);}
@@ -1755,7 +1745,7 @@ HTML_BODY = """
     <span class="leg-item"><span class="leg-dot" style="background:#FF8A50"></span>Semi-marathon</span>
     <span class="leg-item"><span class="leg-dot" style="background:#5CDFA0"></span>10 km</span>
     <span class="leg-item"><span class="leg-dot" style="background:#F472B6"></span>Autre</span>
-    <span class="leg-item"><span class="leg-dot" style="background:#FCDB00"></span>Evenements ASO</span>
+
     <span class="leg-item"><span class="leg-dot" style="background:#38BDF8"></span>World Marathon Majors</span>
   </div>
   <div class="chart-wrap" style="height:320px;"><canvas id="chart-trends"></canvas></div>
@@ -1785,7 +1775,7 @@ HTML_BODY = """
   <div class="section-title">Top evenements par nombre de finishers</div>
   <div class="legend">
     <span class="leg-item"><span class="leg-dot" style="background:#5C00D4"></span>Autre</span>
-    <span class="leg-item"><span class="leg-dot" style="background:#FCDB00"></span>Evenements ASO</span>
+
     <span class="leg-item"><span class="leg-dot" style="background:#38BDF8"></span>World Marathon Majors</span>
   </div>
   <div class="time-bar-wrap" id="biggest-bars" style="max-height:520px"></div>
@@ -1822,7 +1812,7 @@ HTML_BODY = """
   <div class="section-title">Temps moyen par course</div>
   <div class="legend">
     <span class="leg-item"><span class="leg-dot" style="background:#5C00D4"></span>Autre</span>
-    <span class="leg-item"><span class="leg-dot" style="background:#FCDB00"></span>Evenements ASO</span>
+
     <span class="leg-item"><span class="leg-dot" style="background:#38BDF8"></span>World Marathon Majors</span>
   </div>
   <div class="time-bar-wrap" id="time-bars"></div>
@@ -1926,7 +1916,7 @@ HTML_BODY = """
     </div>
     <div class="ctrl-group"><span class="ctrl-label">Badge</span>
       <select id="badge-data" onchange="filterTable()">
-        <option value="ALL">Tous</option><option value="WMM">WMM</option><option value="ASO">ASO</option><option value="OTHER">Autre</option>
+        <option value="ALL">Tous</option><option value="WMM">WMM</option><option value="OTHER">Autre</option>
       </select>
     </div>
     <div class="ctrl-group"><span class="ctrl-label">Taille</span>
@@ -1997,7 +1987,7 @@ def generate_html(finishers, biggest, md, sd, tdb, winners):
     js_data = ("const RAW=" + j(finishers) + ";\nconst BIGGEST=" + j(biggest) + ";\n"
                "const TEMPS_MARATHON=" + j(tmjs) + ";\nconst TEMPS_SEMI=" + j(tsjs) + ";\n"
                "const TEMPS_AVG=" + j(sp_avg_js) + ";\n"
-               "const TIMES_DB=" + j(tdbjs) + ";\nconst ASO_KEYWORDS=" + j(ASO_KEYWORDS) + ";\n"
+               "const TIMES_DB=" + j(tdbjs) + ";\n"
                "const WMM_KEYWORDS=" + j(WMM_KEYWORDS) + ";\n"
                "const WINNERS=" + j(winners) + ";\n"
                "const SP_BRANDS=" + j(spdata.get("brands", {})) + ";\n"
