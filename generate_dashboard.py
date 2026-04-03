@@ -506,22 +506,34 @@ function insNav(name){
   var idx=RAW.findIndex(function(r){return r.r===name;});
   if(idx>=0){switchTab('overview');document.getElementById('ov-search').value=name;ovSearch();ovSelect(idx);}
 }
+function initInsightsYears(){
+  var allYrs=[];
+  RAW.forEach(function(r){Object.keys(r.hist||{}).map(Number).forEach(function(y){var v=(r.hist||{})[y];if(v&&v>0&&allYrs.indexOf(y)<0)allYrs.push(y);});});
+  allYrs.sort(function(a,b){return a-b;});
+  var selFrom=document.getElementById('ins-yr-from');
+  var selTo=document.getElementById('ins-yr-to');
+  allYrs.forEach(function(y){var o=document.createElement('option');o.value=y;o.textContent=y;selFrom.appendChild(o);var o2=document.createElement('option');o2.value=y;o2.textContent=y;selTo.appendChild(o2);});
+  // Defaults: from=2023, to=latest year with data
+  var latestYr=allYrs[allYrs.length-1]||2025;
+  selFrom.value=allYrs.indexOf(2023)>=0?2023:allYrs[0];
+  selTo.value=latestYr;
+}
 function updateInsights(){
   var distF=document.getElementById('ins-dist').value;
-  // Determine target year: 2026 if data exists, else 2025
-  var has2026=RAW.some(function(r){var v=hv(r,2026);return v&&v>0;});
-  var targetYr=has2026?2026:2025;
+  var fromYr=parseInt(document.getElementById('ins-yr-from').value);
+  var toYr=parseInt(document.getElementById('ins-yr-to').value);
+  if(toYr<=fromYr)toYr=fromYr+1;
   var lbl=document.getElementById('ins-period-lbl');
-  if(lbl)lbl.textContent='Insights \u2014 Tendances cles 2023 \u2192 '+targetYr;
-  // Filter: need data in 2023 + targetYr + at least 3 years total with positive values
+  if(lbl)lbl.textContent='Insights \u2014 Tendances '+fromYr+' \u2192 '+toYr;
+  // Filter: need data in fromYr + toYr + at least 3 years total with positive values
   var items=RAW.filter(function(r){
     if(distF!=='ALL'&&r.d!==distF)return false;
-    var a=hv(r,2023),b=hv(r,targetYr);
+    var a=hv(r,fromYr),b=hv(r,toYr);
     if(!a||a<=0||!b||b<=0)return false;
     var yrsWithData=Object.keys(r.hist||{}).filter(function(y){var v=(r.hist||{})[y];return v&&v>0;}).length;
     return yrsWithData>=3;
   });
-  var withDelta=items.map(function(r){var a=hv(r,2023),b=hv(r,targetYr);return{name:r.r,d:r.d,v3:a,vt:b,pct:((b-a)/a*100)};});
+  var withDelta=items.map(function(r){var a=hv(r,fromYr),b=hv(r,toYr);return{name:r.r,d:r.d,v3:a,vt:b,pct:((b-a)/a*100)};});
   withDelta.sort(function(a,b){return b.pct-a.pct;});
   var top5=withDelta.slice(0,5);
   var bot5=withDelta.slice(-5).reverse();
@@ -547,16 +559,16 @@ function updateInsights(){
   renderList(top5,'ins-growth');
   renderList(bot5,'ins-decline');
   // Key metrics
-  var allWithTarget=RAW.filter(function(r){if(distF!=='ALL'&&r.d!==distF)return false;var v=hv(r,targetYr);return v&&v>0;});
-  var totalFin=allWithTarget.reduce(function(s,r){return s+hv(r,targetYr);},0);
-  var biggest=allWithTarget.length?allWithTarget.reduce(function(a,b){return hv(a,targetYr)>hv(b,targetYr)?a:b;}):null;
+  var allWithTarget=RAW.filter(function(r){if(distF!=='ALL'&&r.d!==distF)return false;var v=hv(r,toYr);return v&&v>0;});
+  var totalFin=allWithTarget.reduce(function(s,r){return s+hv(r,toYr);},0);
+  var biggest=allWithTarget.length?allWithTarget.reduce(function(a,b){return hv(a,toYr)>hv(b,toYr)?a:b;}):null;
   var avgGrowth=withDelta.length?(withDelta.reduce(function(s,r){return s+r.pct;},0)/withDelta.length):0;
   var growing=withDelta.filter(function(r){return r.pct>0;}).length;
   var declining=withDelta.filter(function(r){return r.pct<0;}).length;
   document.getElementById('ins-metrics').innerHTML=
-    '<div class="metric"><div class="metric-label">Total finishers '+targetYr+'</div><div class="metric-value">'+fmtFull(totalFin)+'</div><div class="metric-sub">'+allWithTarget.length+' evenements</div></div>'
-    +'<div class="metric"><div class="metric-label">Plus grand '+targetYr+'</div><div class="metric-value" style="font-size:15px">'+(biggest?biggest.r:'-')+'</div><div class="metric-sub">'+(biggest?fmtFull(hv(biggest,targetYr))+' finishers':'-')+'</div></div>'
-    +'<div class="metric"><div class="metric-label">Croissance moyenne</div><div class="metric-value" style="color:'+(avgGrowth>=0?'#22C55E':'#EF4444')+'">'+(avgGrowth>=0?'+':'')+avgGrowth.toFixed(1)+'%</div><div class="metric-sub">2023 \u2192 '+targetYr+'</div></div>'
+    '<div class="metric"><div class="metric-label">Total finishers '+toYr+'</div><div class="metric-value">'+fmtFull(totalFin)+'</div><div class="metric-sub">'+allWithTarget.length+' evenements</div></div>'
+    +'<div class="metric"><div class="metric-label">Plus grand '+toYr+'</div><div class="metric-value" style="font-size:15px">'+(biggest?biggest.r:'-')+'</div><div class="metric-sub">'+(biggest?fmtFull(hv(biggest,toYr))+' finishers':'-')+'</div></div>'
+    +'<div class="metric"><div class="metric-label">Croissance moyenne</div><div class="metric-value" style="color:'+(avgGrowth>=0?'#22C55E':'#EF4444')+'">'+(avgGrowth>=0?'+':'')+avgGrowth.toFixed(1)+'%</div><div class="metric-sub">'+fromYr+' \u2192 '+toYr+'</div></div>'
     +'<div class="metric"><div class="metric-label">Tendance</div><div class="metric-value" style="font-size:16px"><span style="color:#22C55E">\u25B2 '+growing+'</span> <span style="color:var(--text3)">/</span> <span style="color:#EF4444">\u25BC '+declining+'</span></div><div class="metric-sub">croissance vs declin</div></div>';
 }
 
@@ -1171,6 +1183,7 @@ function spSelect(brandId){
 }
 
 initBiggestYears();
+initInsightsYears();
 filterTable();
 
 // ── COMPARE ──────────────────────────────────────────────────────────────────
@@ -1729,12 +1742,22 @@ HTML_BODY = """
 </div>
 <div id="panel-insights" class="panel">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1.25rem;">
-    <div class="section-title" id="ins-period-lbl" style="margin-bottom:0">Insights &mdash; Tendances cles 2023 &rarr; 2025</div>
-    <div class="ctrl-group">
-      <span class="ctrl-label">Distance</span>
-      <select id="ins-dist" onchange="updateInsights()">
-        <option value="ALL">Toutes distances</option><option value="MARATHON">Marathon</option><option value="SEMI">Semi-marathon</option><option value="10KM">10 km</option><option value="AUTRE">Autre</option>
-      </select>
+    <div class="section-title" id="ins-period-lbl" style="margin-bottom:0">Insights</div>
+    <div class="controls" style="margin-bottom:0;">
+      <div class="ctrl-group">
+        <span class="ctrl-label">De</span>
+        <select id="ins-yr-from" onchange="updateInsights()"></select>
+      </div>
+      <div class="ctrl-group">
+        <span class="ctrl-label">A</span>
+        <select id="ins-yr-to" onchange="updateInsights()"></select>
+      </div>
+      <div class="ctrl-group">
+        <span class="ctrl-label">Distance</span>
+        <select id="ins-dist" onchange="updateInsights()">
+          <option value="ALL">Toutes distances</option><option value="MARATHON">Marathon</option><option value="SEMI">Semi-marathon</option><option value="10KM">10 km</option><option value="AUTRE">Autre</option>
+        </select>
+      </div>
     </div>
   </div>
   <div class="ins-grid">
