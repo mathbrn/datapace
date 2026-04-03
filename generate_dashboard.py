@@ -1482,63 +1482,70 @@ function updateWinnersTable(){
 '''
 
 
-CSS = """*{box-sizing:border-box;margin:0;padding:0;}
-:root{--bg:#0d1117;--bg2:#161b22;--bg3:#1c2128;--border:#30363d;--border2:#30363d;--text:#e6edf3;--text2:#8b949e;--text3:#6e7681;--purple:#7B2FFF;--yellow:#FCDB00;}
-[data-theme="light"]{--bg:#f8f9fb;--bg2:#eef1f5;--bg3:#e4e8ee;--border:#c8ced6;--border2:#c8ced6;--text:#1a1d21;--text2:#3d454e;--text3:#636d78;--purple:#5C00D4;--yellow:#B8920A;}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:1.5rem;}
-.dp-header{padding-bottom:1.25rem;border-bottom:.5px solid var(--border);margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:.5rem;}
-.dp-brand{display:flex;align-items:center;gap:10px;}
-.dp-logo{font-size:22px;font-weight:700;color:#5C00D4;letter-spacing:-.02em;}
-.dp-logo span{color:var(--text);}
-.dp-sub{font-size:12px;color:var(--text3);margin-top:2px;}
-.dp-contact{display:flex;align-items:center;gap:12px;font-size:11px;color:var(--text3);}
-.dp-contact a{color:#5C00D4;text-decoration:none;transition:opacity .2s;}
-.dp-contact a:hover{opacity:.7;}
-.dp-updated{font-size:11px;color:var(--text3);}
-.dp-footer{text-align:center;padding:2rem 0 1rem;font-size:11px;color:var(--text3);border-top:.5px solid var(--border);margin-top:2rem;}
+CSS = """@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#080808;--bg2:#0e0e11;--bg3:#141418;--bg4:#1a1a20;--border:#1a1a20;--border2:#252530;--text:#f0f0f5;--text2:#8a8a9a;--text3:#55555f;--purple:#5C00D4;--purple2:#7B2FFF;--yellow:#FCDB00;--accent:#5C00D4;}
+[data-theme="light"]{--bg:#f5f5f8;--bg2:#ebebf0;--bg3:#e0e0e8;--bg4:#d5d5dd;--border:#c8c8d0;--border2:#b8b8c0;--text:#1a1a21;--text2:#3d3d4e;--text3:#63636e;--purple:#5C00D4;--purple2:#4800A8;--yellow:#A88F00;--accent:#5C00D4;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,sans-serif;padding:0;-webkit-font-smoothing:antialiased;}
+.dash-nav{position:fixed;top:0;left:0;right:0;z-index:200;height:56px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,8,8,.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+.dash-nav-left{display:flex;align-items:center;gap:12px;}
+.dash-nav-logo{height:26px;filter:invert(1);}
+[data-theme="light"] .dash-nav-logo{filter:none;}
+.dash-nav-sep{width:1px;height:20px;background:var(--border2);}
+.dash-nav-title{font-size:13px;font-weight:500;color:var(--text2);}
+.dash-nav-right{display:flex;align-items:center;gap:12px;}
+.dash-body{padding:72px 24px 24px;}
+.dp-footer{padding:32px 24px;border-top:1px solid var(--border);text-align:center;margin-top:2rem;}
+.dp-footer-logo{height:22px;filter:invert(1);margin:0 auto 12px;}
+[data-theme="light"] .dp-footer-logo{filter:none;}
+.dp-footer-links{display:flex;justify-content:center;gap:20px;font-size:12px;color:var(--text3);flex-wrap:wrap;margin-bottom:10px;}
+.dp-footer-links a{color:var(--text3);text-decoration:none;transition:color .2s;}
+.dp-footer-links a:hover{color:var(--text);}
+.dp-footer-copy{font-size:11px;color:var(--text3);}
 .ins-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
 @media(max-width:700px){.ins-grid{grid-template-columns:1fr;}}
-.ins-card{background:var(--bg2);border-radius:8px;padding:1.25rem;}
+.ins-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;}
 .ins-card-title{font-size:14px;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
 .ins-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:.5px solid var(--border);font-size:13px;}
 .ins-row:last-child{border-bottom:none;}
 .ins-pct-up{color:#22C55E;font-weight:600;}
 .ins-pct-down{color:#EF4444;font-weight:600;}
-.tabs{display:flex;border-bottom:.5px solid var(--border);margin-bottom:1.5rem;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.tabs{display:flex;gap:4px;padding:4px;background:var(--bg2);border-radius:10px;border:1px solid var(--border);overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;margin-bottom:1.5rem;}
 .tabs::-webkit-scrollbar{display:none;}
-.tab{padding:8px 14px;font-size:12px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;letter-spacing:.04em;text-transform:uppercase;transition:color .15s,border-color .15s;white-space:nowrap;}
-.tab.active{color:var(--text);border-bottom-color:var(--purple);}
-.tab:hover:not(.active){color:var(--text2);}
+.tab{padding:8px 16px;font-size:12px;font-weight:500;color:var(--text3);cursor:pointer;border-radius:6px;white-space:nowrap;transition:all .2s;letter-spacing:.02em;}
+.tab.active{background:var(--purple);color:#fff;}
+.tab:hover:not(.active){color:var(--text);background:var(--bg3);}
 .panel{display:none;}.panel.active{display:block;}
 .controls{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:1.5rem;align-items:flex-end;}
 .ctrl-group{display:flex;flex-direction:column;gap:5px;}
 .ctrl-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;}
-select{font-size:12px;padding:5px 10px;border:.5px solid var(--border2);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer;outline:none;}
-select:focus{border-color:var(--purple);color:var(--text);}
+select{font-family:'Inter',system-ui,sans-serif;font-size:12px;padding:7px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text2);cursor:pointer;outline:none;transition:border-color .2s,box-shadow .2s;}
+select:focus{border-color:var(--purple);color:var(--text);box-shadow:0 0 0 3px rgba(92,0,212,.1);}
 .section-title{font-size:10px;color:var(--text3);margin-bottom:12px;text-transform:uppercase;letter-spacing:.1em;}
 .legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
 .leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);}
 .leg-dot{width:8px;height:8px;border-radius:1px;flex-shrink:0;}
 .chart-wrap{position:relative;width:100%;margin-bottom:1.5rem;}
-.table-wrap{overflow-x:auto;border:.5px solid var(--border);border-radius:4px;}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th{background:var(--bg2);padding:7px 12px;text-align:left;font-weight:400;color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.08em;border-bottom:.5px solid var(--border);}
 td{padding:7px 12px;border-bottom:.5px solid var(--border);color:var(--text2);}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:var(--bg2);color:var(--text);}
-.badge{font-size:10px;padding:2px 7px;border-radius:2px;font-weight:400;}
+.badge{font-size:10px;font-weight:500;padding:3px 10px;border-radius:100px;}
 .badge-aso{background:#FCDB0018;color:#FCDB00;}
 .badge-world{background:#5C00D418;color:#9B6FFF;}
 .badge-wmm{background:#38BDF818;color:#38BDF8;margin-left:4px;}
 .search-wrap{position:relative;flex:1;min-width:160px;}
-.search-wrap input{width:100%;font-size:12px;padding:5px 10px 5px 26px;border:.5px solid var(--border2);border-radius:4px;background:var(--bg2);color:var(--text);}
+.search-wrap input{width:100%;font-family:'Inter',system-ui,sans-serif;font-size:13px;padding:8px 12px 8px 30px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;}
+.search-wrap input:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(92,0,212,.1);}
 .search-wrap input::placeholder{color:var(--text3);}
 .search-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:12px;pointer-events:none;}
 .count{font-size:11px;color:var(--text3);margin-top:8px;}
 .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1.5rem;}
-.metric{background:var(--bg2);border-radius:4px;padding:12px 14px;border:.5px solid var(--border);}
-.metric-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;}
-.metric-value{font-size:20px;font-weight:500;color:var(--text);margin-top:4px;}
+.metric{background:var(--bg2);border-radius:10px;padding:14px 16px;border:1px solid var(--border);}
+.metric-label{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;}
+.metric-value{font-size:22px;font-weight:700;color:var(--text);margin-top:4px;}
 .metric-sub{font-size:11px;color:var(--text3);margin-top:2px;}
 .time-bar-wrap{margin-bottom:1.5rem;max-height:360px;overflow-y:auto;}
 .time-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:5px;}
@@ -1558,7 +1565,7 @@ tr:hover td{background:var(--bg2);color:var(--text);}
 .ov-result-item.selected{border-left:2px solid var(--purple);}
 .ov-result-dist{font-size:10px;padding:1px 6px;border-radius:2px;flex-shrink:0;}
 .ov-placeholder{color:var(--text3);font-size:12px;padding:1.5rem;text-align:center;}
-.ov-card{border:.5px solid var(--border2);border-radius:6px;padding:1.25rem;margin-bottom:1.5rem;background:var(--bg2);}
+.ov-card{border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1.5rem;background:var(--bg2);}
 .ov-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;}
 .ov-card-title{font-size:16px;font-weight:500;letter-spacing:-.2px;}
 .ov-card-meta{font-size:12px;color:var(--text3);margin-top:4px;display:flex;gap:12px;flex-wrap:wrap;}
@@ -1665,24 +1672,18 @@ tr:hover td{background:var(--bg2);color:var(--text);}
 [data-theme="light"] .sp-detail{border-color:var(--border);}"""
 
 HTML_BODY = """
-<div class="dp-header">
-  <div class="dp-brand">
-    <a href="index.html" title="Retour a l'accueil" style="display:flex;align-items:center;text-decoration:none;">
-      <img src="assets/Logo_DataPace_primary.png" alt="DataPace" style="width:40px;height:40px;border-radius:50%;margin-right:10px;">
-    </a>
-    <div>
-      <div class="dp-logo">Data<span>Pace</span></div>
-      <div class="dp-sub">L'intelligence data du running mondial</div>
-    </div>
+<nav class="dash-nav">
+  <div class="dash-nav-left">
+    <a href="index.html"><img src="assets/logo_DataPace_text.png" alt="DataPace" class="dash-nav-logo"></a>
+    <div class="dash-nav-sep"></div>
+    <span class="dash-nav-title">Dashboard</span>
   </div>
-  <div style="display:flex;align-items:center;gap:16px;">
-    <div class="dp-contact">
-      <a href="mailto:mathis.brun@orange.fr" title="Contact">mathis.brun@orange.fr</a>
-      <a href="https://www.linkedin.com/in/mathis-brun/" target="_blank" title="LinkedIn">LinkedIn</a>
-    </div>
+  <div class="dash-nav-right">
     <div class="theme-toggle" onclick="toggleTheme()" id="theme-btn" title="Changer le theme">&#x263E; Dark</div>
+    <a href="mailto:mathis.brun@orange.fr" class="dp-btn dp-btn-primary" style="font-size:12px;padding:6px 16px;">Contact</a>
   </div>
-</div>
+</nav>
+<div class="dash-body">
 <div class="tabs">
   <div class="tab active" onclick="switchTab('data')">Tableau</div>
   <div class="tab" onclick="switchTab('insights')">Insights</div>
@@ -1960,7 +1961,16 @@ HTML_BODY = """
   </div>
   <div class="count" style="display:flex;align-items:center;gap:10px"><span id="table-count"></span><a id="reset-filters" href="javascript:void(0)" onclick="resetFilters()" style="display:none;align-items:center;gap:4px;font-size:11px;color:var(--accent);text-decoration:none;cursor:pointer">\u21BA Reinitialiser les filtres</a></div>
 </div>
-<div class="dp-footer">Donnees issues des sites officiels des evenements &middot; DataPace &copy; 2026</div>"""
+</div><!-- /dash-body -->
+<footer class="dp-footer">
+  <img src="assets/logo_DataPace_text.png" alt="DataPace" class="dp-footer-logo">
+  <div class="dp-footer-links">
+    <a href="mailto:mathis.brun@orange.fr">mathis.brun@orange.fr</a>
+    <a href="https://www.linkedin.com/in/mathis-brun/" target="_blank">LinkedIn</a>
+    <a href="index.html">Accueil</a>
+  </div>
+  <div class="dp-footer-copy">DataPace &copy; 2026 &middot; NEXT:RACE SASU</div>
+</footer>"""
 
 
 def load_sponsoring():
@@ -1999,11 +2009,12 @@ def generate_html(finishers, biggest, md, sd, tdb, winners):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DataPace — Dashboard Running Mondial</title>
-<meta name="description" content="Dashboard interactif de 186+ evenements running mondiaux : finishers, temps moyens, chronos vainqueurs, sponsoring. Donnees 2000-2026.">
+<title>DataPace — Dashboard</title>
+<meta name="description" content="Dashboard interactif de 186+ evenements running mondiaux : finishers, temps moyens, chronos vainqueurs, sponsoring. 2000-2026.">
 <meta property="og:title" content="DataPace — Dashboard Running Mondial">
-<meta property="og:description" content="186+ evenements running mondiaux analyses : finishers, temps moyens, chronos vainqueurs, donnees sponsoring.">
+<meta property="og:description" content="186+ evenements running mondiaux : finishers, temps moyens, chronos vainqueurs, sponsoring.">
 <meta property="og:type" content="website">
+<link rel="icon" href="assets/Logo_DataPace_primary.png" type="image/png">
 <style>{CSS}</style>
 </head>
 <body>
