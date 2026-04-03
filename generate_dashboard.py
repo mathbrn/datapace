@@ -380,15 +380,22 @@ function buildOvSponsoring(eventName,eventColor){
   if(!parts.length)return '';
   var byType={title:[],premium:[],major:[],official:[],partner:[]};
   parts.forEach(function(p){(byType[p.type]||byType.partner).push(p);});
-  var tLabels={title:'TITRE',premium:'PREMIUM',major:'MAJEUR',official:'OFFICIEL',partner:'FOURNISSEUR'};
+  var tConf={
+    title:{label:'TITRE',border:'#FCDB00',text:'#FCDB00',bg:'rgba(252,219,0,0.06)'},
+    premium:{label:'PREMIUM',border:'#FCDB0080',text:'#FCDB00',bg:'rgba(252,219,0,0.04)'},
+    major:{label:'MAJEUR',border:'#5C00D480',text:'#9B6FFF',bg:'rgba(92,0,212,0.04)'},
+    official:{label:'OFFICIEL',border:'#5C00D4',text:'#9B6FFF',bg:'rgba(92,0,212,0.06)'},
+    partner:{label:'FOURNISSEUR',border:'#ffffff30',text:'#888',bg:'transparent'}
+  };
   var h='<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">'
     +'<div class="ov-chart-label" style="margin-bottom:10px">Partenaires '+now+'</div>';
   ['title','premium','major','official','partner'].forEach(function(t){
     var items=byType[t];if(!items.length)return;
-    var pills=items.map(function(p){return'<span style="font-size:11px;padding:3px 10px;border-radius:100px;border:1px solid #ffffff18;color:var(--text2);background:transparent;" title="'+p.brand+' ('+p.years[0]+'-'+p.years[p.years.length-1]+')">'+p.brand+'</span>';}).join('');
-    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">'
-      +'<span style="font-size:9px;font-weight:600;color:var(--text3);letter-spacing:.1em;flex-shrink:0;">'+tLabels[t]+' &middot;</span>'
-      +pills+'</div>';
+    var tc=tConf[t];
+    var names=items.map(function(p){return'<span style="font-size:12px;color:var(--text);" title="'+p.brand+' ('+p.years[0]+'-'+p.years[p.years.length-1]+')">'+p.brand+'</span>';}).join('<span style="color:var(--text3);margin:0 2px;">,</span> ');
+    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">'
+      +'<span style="font-size:9px;font-weight:600;letter-spacing:.1em;padding:3px 8px;border-radius:100px;border:1px solid '+tc.border+';color:'+tc.text+';background:'+tc.bg+';flex-shrink:0;">'+tc.label+'</span>'
+      +names+'</div>';
   });
   h+='</div>';
   return h;
@@ -601,7 +608,7 @@ function ovSelect(idx){
   if(lastEd){
     var finSub='';
     if(prevEd&&prevEd.v>0){var d=((lastEd.v-prevEd.v)/prevEd.v*100);finSub='<div style="font-size:11px;margin-top:3px;color:'+(d>=0?'#22C55E':'#EF4444')+'">'+(d>=0?'+':'')+d.toFixed(1)+'% vs '+prevEd.yr+'</div>';}
-    stats+=ovMetric('Finishers ('+lastEd.yr+')',fmtFull(lastEd.v),'#5C00D4',finSub);
+    stats+=ovMetric('Finishers ('+lastEd.yr+')',fmtFull(lastEd.v),ac,finSub);
   }
   if(td&&td.avg){stats+=ovMetric('Temps moyen ('+td.yr+')',td.avg,'#888');}
   var menVal=wr&&wr.men?wr.men:(td&&td.men?td.men:null);
@@ -632,7 +639,7 @@ function ovSelect(idx){
   if(wh.men.length>=2){
     charts2Html+='<div class="ov-chart-box"><div class="ov-chart-label">Record Homme par edition</div><div style="position:relative;height:150px"><canvas id="ov-chart-men"></canvas></div></div>';
   } else if(wh.men.length===1){
-    charts2Html+='<div class="ov-chart-box"><div class="ov-chart-label">Record Homme</div><div style="text-align:center;padding:2rem 0"><div style="font-size:22px;font-weight:700;color:#5C00D4">'+wh.men[0].time+'</div><div style="font-size:12px;color:var(--text3);margin-top:4px">en '+wh.men[0].yr+'</div></div></div>';
+    charts2Html+='<div class="ov-chart-box"><div class="ov-chart-label">Record Homme</div><div style="text-align:center;padding:2rem 0"><div style="font-size:22px;font-weight:700;color:#22C55E">'+wh.men[0].time+'</div><div style="font-size:12px;color:var(--text3);margin-top:4px">en '+wh.men[0].yr+'</div></div></div>';
   }
   // Record femme chart/card
   if(wh.women.length>=2){
@@ -672,7 +679,7 @@ function ovSelect(idx){
   var fc=document.getElementById('ov-chart-fin');
   if(fc&&nYears>=2){
     ovChartF=new Chart(fc,{type:'bar',
-      data:{labels:positiveHistory.map(function(e){return e.yr;}),datasets:[{data:positiveHistory.map(function(e){return e.v;}),backgroundColor:'#5C00D4',hoverBackgroundColor:'#7B2FFF',borderRadius:3,borderSkipped:false}]},
+      data:{labels:positiveHistory.map(function(e){return e.yr;}),datasets:[{data:positiveHistory.map(function(e){return e.v;}),backgroundColor:ac,hoverBackgroundColor:ac+'CC',borderRadius:3,borderSkipped:false}]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:false},tooltip:{backgroundColor:mkTT().backgroundColor,borderColor:mkTT().borderColor,borderWidth:1,titleColor:mkTT().titleColor,bodyColor:mkTT().bodyColor,padding:10,callbacks:{label:function(ctx){return' '+fmtFull(ctx.parsed.y)+' finishers';}}}},
         scales:{x:{grid:{display:false},ticks:{color:'#555',font:{size:10}},border:{display:false}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555',font:{size:10},callback:function(v){return fmt(v);}},border:{display:false}}}
@@ -694,7 +701,7 @@ function ovSelect(idx){
   var mcv=document.getElementById('ov-chart-men');
   if(mcv&&wh.men.length>=2){
     ovChartM=new Chart(mcv,{type:'line',
-      data:{labels:wh.men.map(function(e){return e.yr;}),datasets:[{data:wh.men.map(function(e){return e.sec/60;}),borderColor:'#5C00D4',backgroundColor:'rgba(92,0,212,0.08)',tension:0.3,pointRadius:4,pointBackgroundColor:'#5C00D4',borderWidth:2,fill:true}]},
+      data:{labels:wh.men.map(function(e){return e.yr;}),datasets:[{data:wh.men.map(function(e){return e.sec/60;}),borderColor:'#22C55E',backgroundColor:'rgba(34,197,94,0.08)',tension:0.3,pointRadius:4,pointBackgroundColor:'#22C55E',borderWidth:2,fill:true}]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:false},tooltip:{backgroundColor:mkTT().backgroundColor,borderColor:mkTT().borderColor,borderWidth:1,titleColor:mkTT().titleColor,bodyColor:mkTT().bodyColor,padding:10,callbacks:{label:function(ctx){var i=ctx.dataIndex;return' '+wh.men[i].time;}}}},
         scales:{x:{grid:{display:false},ticks:{color:'#555',font:{size:10}},border:{display:false}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555',font:{size:10},callback:function(v){return fmtHM(v);}},border:{display:false}}}
