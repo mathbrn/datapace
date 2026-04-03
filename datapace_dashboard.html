@@ -582,28 +582,15 @@ function buildOvSponsoring(eventName,eventColor){
   if(!parts.length)return '';
   var byType={title:[],premium:[],major:[],official:[],partner:[]};
   parts.forEach(function(p){(byType[p.type]||byType.partner).push(p);});
-  var tConf={
-    title:{label:'Partenaire Titre',bg:ec,text:'#fff'},
-    premium:{label:'Partenaire Premium',bg:ec+'80',text:'#fff'},
-    major:{label:'Partenaire Majeur',bg:ec+'60',text:'#fff'},
-    official:{label:'Partenaire Officiel',bg:ec+'30',text:ec},
-    partner:{label:'Fournisseur Officiel',bg:'var(--bg3)',text:'var(--text2)'}
-  };
-  var h='<div style="margin-top:1rem;padding-top:1rem;border-top:.5px solid var(--border)">'
-    +'<div class="ov-chart-label" style="margin-bottom:8px">Partenaires '+now+'</div>';
+  var tLabels={title:'TITRE',premium:'PREMIUM',major:'MAJEUR',official:'OFFICIEL',partner:'FOURNISSEUR'};
+  var h='<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">'
+    +'<div class="ov-chart-label" style="margin-bottom:10px">Partenaires '+now+'</div>';
   ['title','premium','major','official','partner'].forEach(function(t){
     var items=byType[t];if(!items.length)return;
-    var tc=tConf[t];
-    h+='<div style="margin-bottom:6px">'
-      +'<span style="display:inline-block;font-size:9px;padding:2px 7px;border-radius:3px;background:'+tc.bg+';color:'+tc.text+';font-weight:600;margin-bottom:3px">'+tc.label+'</span>'
-      +'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px">';
-    items.forEach(function(p){
-      var info=SP_BRANDS[p.brand]||{};
-      var sec=info.sector||'';
-      var col=_spCols[sec]||'var(--text2)';
-      h+='<span style="font-size:11px;padding:3px 8px;border-radius:4px;background:var(--bg3);border:.5px solid var(--border);color:'+col+';cursor:default" title="'+p.brand+(sec?' - '+sec:'')+' ('+p.years[0]+'-'+p.years[p.years.length-1]+')">'+p.brand+'</span>';
-    });
-    h+='</div></div>';
+    var pills=items.map(function(p){return'<span style="font-size:11px;padding:3px 10px;border-radius:100px;border:1px solid #ffffff18;color:var(--text2);background:transparent;" title="'+p.brand+' ('+p.years[0]+'-'+p.years[p.years.length-1]+')">'+p.brand+'</span>';}).join('');
+    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">'
+      +'<span style="font-size:9px;font-weight:600;color:var(--text3);letter-spacing:.1em;flex-shrink:0;">'+tLabels[t]+' &middot;</span>'
+      +pills+'</div>';
   });
   h+='</div>';
   return h;
@@ -811,23 +798,20 @@ function ovSelect(idx){
   var firstYr=positiveHistory.length?positiveHistory[0].yr:null;
 
   // --- Metrics cards (only show if data exists) ---
+  function ovMetric(label,value,borderColor,sub){return'<div class="ov-stat" style="border:none;border-left:3px solid '+borderColor+';background:#141414;border-radius:0 8px 8px 0;"><div class="ov-stat-label">'+label+'</div><div class="ov-stat-value" style="font-size:28px;font-weight:700">'+value+'</div>'+(sub||'')+'</div>';}
   var stats='<div class="ov-stats">';
-  // Finishers: always show if we have at least 1
   if(lastEd){
-    var finDelta='';
-    if(prevEd&&prevEd.v>0){var d=((lastEd.v-prevEd.v)/prevEd.v*100);finDelta='<div style="font-size:11px;margin-top:2px;color:'+(d>=0?'#22C55E':'#EF4444')+'">'+(d>=0?'+':'')+d.toFixed(1)+'% vs '+prevEd.yr+'</div>';}
-    stats+='<div class="ov-stat"><div class="ov-stat-label">Finishers ('+lastEd.yr+')</div><div class="ov-stat-value">'+fmtFull(lastEd.v)+'</div>'+finDelta+'</div>';
+    var finSub='';
+    if(prevEd&&prevEd.v>0){var d=((lastEd.v-prevEd.v)/prevEd.v*100);finSub='<div style="font-size:11px;margin-top:3px;color:'+(d>=0?'#22C55E':'#EF4444')+'">'+(d>=0?'+':'')+d.toFixed(1)+'% vs '+prevEd.yr+'</div>';}
+    stats+=ovMetric('Finishers ('+lastEd.yr+')',fmtFull(lastEd.v),'#5C00D4',finSub);
   }
-  // Temps moyen
-  if(td&&td.avg){stats+='<div class="ov-stat"><div class="ov-stat-label">Temps moyen ('+td.yr+')</div><div class="ov-stat-value" style="font-size:14px">'+td.avg+'</div></div>';}
-  // Record homme
+  if(td&&td.avg){stats+=ovMetric('Temps moyen ('+td.yr+')',td.avg,'#888');}
   var menVal=wr&&wr.men?wr.men:(td&&td.men?td.men:null);
   var menYr=wr&&wr.menYr?wr.menYr:(td?td.yr:null);
-  if(menVal){stats+='<div class="ov-stat"><div class="ov-stat-label">Record homme'+(menYr?' ('+menYr+')':'')+'</div><div class="ov-stat-value" style="font-size:14px;color:#9B6FFF">'+menVal+'</div></div>';}
-  // Record femme
+  if(menVal){stats+=ovMetric('Record homme'+(menYr?' ('+menYr+')':''),menVal,'#22C55E');}
   var wmVal=wr&&wr.women?wr.women:(td&&td.women?td.women:null);
   var wmYr=wr&&wr.womenYr?wr.womenYr:(td?td.yr:null);
-  if(wmVal){stats+='<div class="ov-stat"><div class="ov-stat-label">Record femme'+(wmYr?' ('+wmYr+')':'')+'</div><div class="ov-stat-value" style="font-size:14px;color:#FF8A50">'+wmVal+'</div></div>';}
+  if(wmVal){stats+=ovMetric('Record femme'+(wmYr?' ('+wmYr+')':''),wmVal,'#FCDB00');}
   stats+='</div>';
 
   // --- Build charts section adaptively ---
@@ -850,26 +834,27 @@ function ovSelect(idx){
   if(wh.men.length>=2){
     charts2Html+='<div class="ov-chart-box"><div class="ov-chart-label">Record Homme par edition</div><div style="position:relative;height:150px"><canvas id="ov-chart-men"></canvas></div></div>';
   } else if(wh.men.length===1){
-    charts2Html+='<div class="ov-chart-box"><div class="ov-chart-label">Record Homme</div><div style="text-align:center;padding:2rem 0"><div style="font-size:22px;font-weight:700;color:#9B6FFF">'+wh.men[0].time+'</div><div style="font-size:12px;color:var(--text3);margin-top:4px">en '+wh.men[0].yr+'</div></div></div>';
+    charts2Html+='<div class="ov-chart-box"><div class="ov-chart-label">Record Homme</div><div style="text-align:center;padding:2rem 0"><div style="font-size:22px;font-weight:700;color:#5C00D4">'+wh.men[0].time+'</div><div style="font-size:12px;color:var(--text3);margin-top:4px">en '+wh.men[0].yr+'</div></div></div>';
   }
   // Record femme chart/card
   if(wh.women.length>=2){
     charts2Html+='<div class="ov-chart-box"><div class="ov-chart-label">Record Femme par edition</div><div style="position:relative;height:150px"><canvas id="ov-chart-women"></canvas></div></div>';
   } else if(wh.women.length===1){
-    charts2Html+='<div class="ov-chart-box"><div class="ov-chart-label">Record Femme</div><div style="text-align:center;padding:2rem 0"><div style="font-size:22px;font-weight:700;color:#FF8A50">'+wh.women[0].time+'</div><div style="font-size:12px;color:var(--text3);margin-top:4px">en '+wh.women[0].yr+'</div></div></div>';
+    charts2Html+='<div class="ov-chart-box"><div class="ov-chart-label">Record Femme</div><div style="text-align:center;padding:2rem 0"><div style="font-size:22px;font-weight:700;color:#FCDB00">'+wh.women[0].time+'</div><div style="font-size:12px;color:var(--text3);margin-top:4px">en '+wh.women[0].yr+'</div></div></div>';
   }
 
   // --- Context banner ---
   var banner='';
   if(nYears>0&&nYears<3){banner='<div style="font-size:12px;color:var(--text3);padding:8px 12px;background:var(--bg3);border-radius:6px;margin-bottom:1rem">Donnees disponibles depuis '+firstYr+' ('+nYears+' edition'+(nYears>1?'s':'')+')</div>';}
 
-  var badgeBg=ac+'18';var badgeCol=ac;
+  var badgeCol=ac;
+  var wmmBadge=isWmm(ev.r)?' <span class="ov-badge" style="border:1px solid #38BDF840;color:#38BDF8;background:transparent;font-size:10px;padding:2px 8px;border-radius:100px;">WMM</span>':'';
   var html='<div class="ov-card">'
     +'<div class="ov-card-header"><div>'
     +'<div class="ov-card-title">'+ev.r+'</div>'
-    +'<div class="ov-card-meta"><span>&#x1F4CD; '+ev.c+'</span><span>&#x1F4C5; '+ev.p+'</span></div>'
+    +'<div class="ov-card-meta"><span>'+ev.c+' &middot; '+ev.p+'</span></div>'
     +'</div>'
-    +(isWmm(ev.r)?'<span class="ov-badge" style="background:#38BDF818;color:#38BDF8">'+dl+' - World Marathon Majors</span>':'<span class="ov-badge" style="background:'+badgeBg+';color:'+badgeCol+'">'+dl+'</span>')
+    +'<span class="ov-badge" style="border:1px solid '+badgeCol+'40;color:'+badgeCol+';background:transparent;font-size:10px;padding:3px 10px;border-radius:100px;">'+dl+'</span>'+wmmBadge
     +'</div>'
     +banner
     +stats
@@ -889,10 +874,10 @@ function ovSelect(idx){
   var fc=document.getElementById('ov-chart-fin');
   if(fc&&nYears>=2){
     ovChartF=new Chart(fc,{type:'bar',
-      data:{labels:positiveHistory.map(function(e){return e.yr;}),datasets:[{data:positiveHistory.map(function(e){return e.v;}),backgroundColor:ac+'99',borderRadius:3,borderSkipped:false}]},
+      data:{labels:positiveHistory.map(function(e){return e.yr;}),datasets:[{data:positiveHistory.map(function(e){return e.v;}),backgroundColor:'#5C00D4',hoverBackgroundColor:'#7B2FFF',borderRadius:3,borderSkipped:false}]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:false},tooltip:{backgroundColor:mkTT().backgroundColor,borderColor:mkTT().borderColor,borderWidth:1,titleColor:mkTT().titleColor,bodyColor:mkTT().bodyColor,padding:10,callbacks:{label:function(ctx){return' '+fmtFull(ctx.parsed.y)+' finishers';}}}},
-        scales:{x:{grid:{display:false},ticks:TICK,border:{color:mkBorder()}},y:{beginAtZero:true,grid:{color:mkGRID()},ticks:{color:mkTICK().color,font:{size:11},callback:function(v){return fmt(v);}},border:{color:mkBorder()}}}
+        scales:{x:{grid:{display:false},ticks:{color:'#555',font:{size:10}},border:{display:false}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555',font:{size:10},callback:function(v){return fmt(v);}},border:{display:false}}}
       }
     });
   }
@@ -900,10 +885,10 @@ function ovSelect(idx){
   var tc=document.getElementById('ov-chart-time');
   if(tc&&th.length>=2){
     ovChartT=new Chart(tc,{type:'line',
-      data:{labels:th.map(function(e){return e.yr;}),datasets:[{data:th.map(function(e){return e.min;}),borderColor:ac,backgroundColor:'transparent',tension:0.3,pointRadius:4,pointBackgroundColor:ac,borderWidth:2}]},
+      data:{labels:th.map(function(e){return e.yr;}),datasets:[{data:th.map(function(e){return e.min;}),borderColor:'#888',backgroundColor:'rgba(136,136,136,0.06)',tension:0.3,pointRadius:4,pointBackgroundColor:'#888',borderWidth:2,fill:true}]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:false},tooltip:{backgroundColor:mkTT().backgroundColor,borderColor:mkTT().borderColor,borderWidth:1,titleColor:mkTT().titleColor,bodyColor:mkTT().bodyColor,padding:10,callbacks:{label:function(ctx){return' '+fmtHMMin(ctx.parsed.y);}}}},
-        scales:{x:{grid:{display:false},ticks:TICK,border:{color:mkBorder()}},y:{grid:{color:mkGRID()},ticks:{color:mkTICK().color,font:{size:11},callback:function(v){return fmtHM(v);}},border:{color:mkBorder()}}}
+        scales:{x:{grid:{display:false},ticks:{color:'#555',font:{size:10}},border:{display:false}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555',font:{size:10},callback:function(v){return fmtHM(v);}},border:{display:false}}}
       }
     });
   }
@@ -911,10 +896,10 @@ function ovSelect(idx){
   var mcv=document.getElementById('ov-chart-men');
   if(mcv&&wh.men.length>=2){
     ovChartM=new Chart(mcv,{type:'line',
-      data:{labels:wh.men.map(function(e){return e.yr;}),datasets:[{data:wh.men.map(function(e){return e.sec/60;}),borderColor:'#9B6FFF',backgroundColor:'#9B6FFF22',tension:0.3,pointRadius:4,pointBackgroundColor:'#9B6FFF',borderWidth:2,fill:true}]},
+      data:{labels:wh.men.map(function(e){return e.yr;}),datasets:[{data:wh.men.map(function(e){return e.sec/60;}),borderColor:'#5C00D4',backgroundColor:'rgba(92,0,212,0.08)',tension:0.3,pointRadius:4,pointBackgroundColor:'#5C00D4',borderWidth:2,fill:true}]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:false},tooltip:{backgroundColor:mkTT().backgroundColor,borderColor:mkTT().borderColor,borderWidth:1,titleColor:mkTT().titleColor,bodyColor:mkTT().bodyColor,padding:10,callbacks:{label:function(ctx){var i=ctx.dataIndex;return' '+wh.men[i].time;}}}},
-        scales:{x:{grid:{display:false},ticks:TICK,border:{color:mkBorder()}},y:{grid:{color:mkGRID()},ticks:{color:mkTICK().color,font:{size:11},callback:function(v){return fmtHM(v);}},border:{color:mkBorder()}}}
+        scales:{x:{grid:{display:false},ticks:{color:'#555',font:{size:10}},border:{display:false}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555',font:{size:10},callback:function(v){return fmtHM(v);}},border:{display:false}}}
       }
     });
   }
@@ -922,10 +907,10 @@ function ovSelect(idx){
   var wcv=document.getElementById('ov-chart-women');
   if(wcv&&wh.women.length>=2){
     ovChartW=new Chart(wcv,{type:'line',
-      data:{labels:wh.women.map(function(e){return e.yr;}),datasets:[{data:wh.women.map(function(e){return e.sec/60;}),borderColor:'#FF8A50',backgroundColor:'#FF8A5022',tension:0.3,pointRadius:4,pointBackgroundColor:'#FF8A50',borderWidth:2,fill:true}]},
+      data:{labels:wh.women.map(function(e){return e.yr;}),datasets:[{data:wh.women.map(function(e){return e.sec/60;}),borderColor:'#FCDB00',backgroundColor:'rgba(252,219,0,0.08)',tension:0.3,pointRadius:4,pointBackgroundColor:'#FCDB00',borderWidth:2,fill:true}]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:false},tooltip:{backgroundColor:mkTT().backgroundColor,borderColor:mkTT().borderColor,borderWidth:1,titleColor:mkTT().titleColor,bodyColor:mkTT().bodyColor,padding:10,callbacks:{label:function(ctx){var i=ctx.dataIndex;return' '+wh.women[i].time;}}}},
-        scales:{x:{grid:{display:false},ticks:TICK,border:{color:mkBorder()}},y:{grid:{color:mkGRID()},ticks:{color:mkTICK().color,font:{size:11},callback:function(v){return fmtHM(v);}},border:{color:mkBorder()}}}
+        scales:{x:{grid:{display:false},ticks:{color:'#555',font:{size:10}},border:{display:false}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555',font:{size:10},callback:function(v){return fmtHM(v);}},border:{display:false}}}
       }
     });
   }
