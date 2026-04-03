@@ -523,8 +523,6 @@ function updateInsights(){
   var fromYr=parseInt(document.getElementById('ins-yr-from').value);
   var toYr=parseInt(document.getElementById('ins-yr-to').value);
   if(toYr<=fromYr)toYr=fromYr+1;
-  var lbl=document.getElementById('ins-period-lbl');
-  if(lbl)lbl.textContent='Insights \u2014 Tendances '+fromYr+' \u2192 '+toYr;
   // Filter: need data in fromYr + toYr + at least 3 years total with positive values
   var items=RAW.filter(function(r){
     if(distF!=='ALL'&&r.d!==distF)return false;
@@ -1742,7 +1740,7 @@ HTML_BODY = """
 </div>
 <div id="panel-insights" class="panel">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1.25rem;">
-    <div class="section-title" id="ins-period-lbl" style="margin-bottom:0">Insights</div>
+    <div id="ins-period-lbl"></div>
     <div class="controls" style="margin-bottom:0;">
       <div class="ctrl-group">
         <span class="ctrl-label">De</span>
