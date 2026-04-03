@@ -32,8 +32,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple
 @media(max-width:700px){.ins-grid{grid-template-columns:1fr;}}
 .ins-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;}
 .ins-card-title{font-size:14px;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
-.ins-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:.5px solid var(--border);font-size:13px;}
-.ins-row:last-child{border-bottom:none;}
+.ins-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;transition:background .15s;}
+.ins-row:hover{background:rgba(255,255,255,.03);}
 .ins-pct-up{color:#22C55E;font-weight:600;}
 .ins-pct-down{color:#EF4444;font-weight:600;}
 .tabs{display:flex;gap:4px;padding:4px;background:var(--bg2);border-radius:10px;border:1px solid var(--border);overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;margin-bottom:1.5rem;}
@@ -221,7 +221,15 @@ tr:hover td{background:var(--bg2);color:var(--text);}
   <div class="tab" onclick="switchTab('sponsoring')">Sponsoring</div>
 </div>
 <div id="panel-insights" class="panel">
-  <div class="section-title">Insights &mdash; Tendances cles 2023 &rarr; 2025</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1.25rem;">
+    <div class="section-title" id="ins-period-lbl" style="margin-bottom:0">Insights &mdash; Tendances cles 2023 &rarr; 2025</div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">Distance</span>
+      <select id="ins-dist" onchange="updateInsights()">
+        <option value="ALL">Toutes distances</option><option value="MARATHON">Marathon</option><option value="SEMI">Semi-marathon</option><option value="10KM">10 km</option><option value="AUTRE">Autre</option>
+      </select>
+    </div>
+  </div>
   <div class="ins-grid">
     <div class="ins-card">
       <div class="ins-card-title">&#x1F4C8; Top 5 &mdash; Plus forte croissance</div>
@@ -231,6 +239,10 @@ tr:hover td{background:var(--bg2);color:var(--text);}
       <div class="ins-card-title">&#x1F4C9; Top 5 &mdash; Plus fort declin</div>
       <div id="ins-decline"></div>
     </div>
+  </div>
+  <div style="margin-top:1.5rem;">
+    <div class="ins-card-title" style="margin-bottom:1rem;">&#x1F4CA; Chiffres cles</div>
+    <div class="metrics" id="ins-metrics"></div>
   </div>
 </div>
 <div id="panel-overview" class="panel">
@@ -675,23 +687,62 @@ function switchTab(name){
   if(name==='data')filterTable();
   if(name==='sponsoring'&&!window._spInit){window._spInit=true;initSponsoring();}
 }
+function insNav(name){
+  var idx=RAW.findIndex(function(r){return r.r===name;});
+  if(idx>=0){switchTab('overview');document.getElementById('ov-search').value=name;ovSearch();ovSelect(idx);}
+}
 function updateInsights(){
-  var items=RAW.filter(function(r){var a=hv(r,2023),b=hv(r,2025);return a&&a>0&&b&&b>0;});
-  var withDelta=items.map(function(r){var a=hv(r,2023),b=hv(r,2025);return{name:r.r,d:r.d,v3:a,v5:b,pct:((b-a)/a*100)};});
+  var distF=document.getElementById('ins-dist').value;
+  // Determine target year: 2026 if data exists, else 2025
+  var has2026=RAW.some(function(r){var v=hv(r,2026);return v&&v>0;});
+  var targetYr=has2026?2026:2025;
+  var lbl=document.getElementById('ins-period-lbl');
+  if(lbl)lbl.textContent='Insights — Tendances cles 2023 → '+targetYr;
+  // Filter: need data in 2023 + targetYr + at least 3 years total with positive values
+  var items=RAW.filter(function(r){
+    if(distF!=='ALL'&&r.d!==distF)return false;
+    var a=hv(r,2023),b=hv(r,targetYr);
+    if(!a||a<=0||!b||b<=0)return false;
+    var yrsWithData=Object.keys(r.hist||{}).filter(function(y){var v=(r.hist||{})[y];return v&&v>0;}).length;
+    return yrsWithData>=3;
+  });
+  var withDelta=items.map(function(r){var a=hv(r,2023),b=hv(r,targetYr);return{name:r.r,d:r.d,v3:a,vt:b,pct:((b-a)/a*100)};});
   withDelta.sort(function(a,b){return b.pct-a.pct;});
   var top5=withDelta.slice(0,5);
   var bot5=withDelta.slice(-5).reverse();
-  function renderList(arr,el,isGrowth){
+  var maxAbsPct=Math.max.apply(null,withDelta.map(function(r){return Math.abs(r.pct);}));
+  if(!maxAbsPct)maxAbsPct=1;
+  function distBadge(d){var c={MARATHON:'#9B6FFF',SEMI:'#FF8A50','10KM':'#5CDFA0',AUTRE:'#F472B6'};var l={MARATHON:'Marathon',SEMI:'Semi','10KM':'10km',AUTRE:'Autre'};return'<span class="dp-badge" style="background:'+((c[d]||'#9B6FFF')+'18')+';color:'+(c[d]||'#9B6FFF')+';font-size:10px;padding:2px 8px;margin-right:8px;">'+(l[d]||d)+'</span>';}
+  function renderList(arr,el){
     var html='';
     arr.forEach(function(r){
       var sign=r.pct>=0?'+':'';
-      var cls=r.pct>=0?'ins-pct-up':'ins-pct-down';
-      html+='<div class="ins-row"><div>'+r.name+'</div><div class="'+cls+'">'+sign+r.pct.toFixed(1)+'%</div></div>';
+      var isUp=r.pct>=0;
+      var barW=Math.min(Math.abs(r.pct)/maxAbsPct*100,100).toFixed(1);
+      var barCol=isUp?'rgba(34,197,94,.15)':'rgba(239,68,68,.15)';
+      var txtCls=isUp?'ins-pct-up':'ins-pct-down';
+      html+='<div class="ins-row" style="cursor:pointer;position:relative;border-radius:6px;padding:8px 10px;" onclick="insNav(''+r.name.replace(/'/g,"\'")+'')">'
+        +'<div style="position:absolute;left:0;top:0;bottom:0;width:'+barW+'%;background:'+barCol+';border-radius:6px;pointer-events:none;"></div>'
+        +'<div style="position:relative;display:flex;align-items:center;flex:1;min-width:0;">'+distBadge(r.d)+'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+r.name+'</span></div>'
+        +'<div class="'+txtCls+'" style="position:relative;flex-shrink:0;margin-left:12px;">'+sign+r.pct.toFixed(1)+'%</div>'
+        +'</div>';
     });
     document.getElementById(el).innerHTML=html;
   }
-  renderList(top5,'ins-growth',true);
-  renderList(bot5,'ins-decline',false);
+  renderList(top5,'ins-growth');
+  renderList(bot5,'ins-decline');
+  // Key metrics
+  var allWithTarget=RAW.filter(function(r){if(distF!=='ALL'&&r.d!==distF)return false;var v=hv(r,targetYr);return v&&v>0;});
+  var totalFin=allWithTarget.reduce(function(s,r){return s+hv(r,targetYr);},0);
+  var biggest=allWithTarget.length?allWithTarget.reduce(function(a,b){return hv(a,targetYr)>hv(b,targetYr)?a:b;}):null;
+  var avgGrowth=withDelta.length?(withDelta.reduce(function(s,r){return s+r.pct;},0)/withDelta.length):0;
+  var growing=withDelta.filter(function(r){return r.pct>0;}).length;
+  var declining=withDelta.filter(function(r){return r.pct<0;}).length;
+  document.getElementById('ins-metrics').innerHTML=
+    '<div class="metric"><div class="metric-label">Total finishers '+targetYr+'</div><div class="metric-value">'+fmtFull(totalFin)+'</div><div class="metric-sub">'+allWithTarget.length+' evenements</div></div>'
+    +'<div class="metric"><div class="metric-label">Plus grand '+targetYr+'</div><div class="metric-value" style="font-size:15px">'+(biggest?biggest.r:'-')+'</div><div class="metric-sub">'+(biggest?fmtFull(hv(biggest,targetYr))+' finishers':'-')+'</div></div>'
+    +'<div class="metric"><div class="metric-label">Croissance moyenne</div><div class="metric-value" style="color:'+(avgGrowth>=0?'#22C55E':'#EF4444')+'">'+(avgGrowth>=0?'+':'')+avgGrowth.toFixed(1)+'%</div><div class="metric-sub">2023 → '+targetYr+'</div></div>'
+    +'<div class="metric"><div class="metric-label">Tendance</div><div class="metric-value" style="font-size:16px"><span style="color:#22C55E">▲ '+growing+'</span> <span style="color:var(--text3)">/</span> <span style="color:#EF4444">▼ '+declining+'</span></div><div class="metric-sub">croissance vs declin</div></div>';
 }
 
 function ovSearch(){
