@@ -1669,6 +1669,7 @@ tr:hover td{background:var(--bg2);color:var(--text);}
 HTML_BODY = """
 <div class="dp-header">
   <div class="dp-brand">
+    <a href="index.html" style="color:var(--text3);font-size:12px;text-decoration:none;margin-right:8px;" title="Retour a l'accueil">&larr; Accueil</a>
     <div>
       <div class="dp-logo">Data<span>Pace</span></div>
       <div class="dp-sub">L'intelligence data du running mondial</div>
@@ -1998,7 +1999,11 @@ def generate_html(finishers, biggest, md, sd, tdb, winners):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Running</title>
+<title>DataPace — Dashboard Running Mondial</title>
+<meta name="description" content="Dashboard interactif de 186+ evenements running mondiaux : finishers, temps moyens, chronos vainqueurs, sponsoring. Donnees 2000-2026.">
+<meta property="og:title" content="DataPace — Dashboard Running Mondial">
+<meta property="og:description" content="186+ evenements running mondiaux analyses : finishers, temps moyens, chronos vainqueurs, donnees sponsoring.">
+<meta property="og:type" content="website">
 <style>{CSS}</style>
 </head>
 <body>
