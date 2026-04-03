@@ -80,6 +80,14 @@
   --dp-yellow: #A88F00;
 }
 
+/* ── Scrollbars ── */
+*{scrollbar-width:thin;scrollbar-color:#ffffff18 transparent;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#ffffff18;border-radius:999px;}
+::-webkit-scrollbar-thumb:hover{background:#5C00D4;}
+::-webkit-scrollbar-corner{background:transparent;}
+
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }

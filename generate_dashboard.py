@@ -1514,7 +1514,12 @@ function updateWinnersTable(){
 
 
 CSS = """@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-*{box-sizing:border-box;margin:0;padding:0;}
+*{box-sizing:border-box;margin:0;padding:0;scrollbar-width:thin;scrollbar-color:#ffffff18 transparent;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#ffffff18;border-radius:999px;}
+::-webkit-scrollbar-thumb:hover{background:#5C00D4;}
+::-webkit-scrollbar-corner{background:transparent;}
 :root{--bg:#080808;--bg2:#0e0e11;--bg3:#141418;--bg4:#1a1a20;--border:#1a1a20;--border2:#252530;--text:#f0f0f5;--text2:#8a8a9a;--text3:#55555f;--purple:#5C00D4;--purple2:#7B2FFF;--yellow:#FCDB00;--accent:#5C00D4;}
 [data-theme="light"]{--bg:#f5f5f8;--bg2:#ebebf0;--bg3:#e0e0e8;--bg4:#d5d5dd;--border:#c8c8d0;--border2:#b8b8c0;--text:#1a1a21;--text2:#3d3d4e;--text3:#63636e;--purple:#5C00D4;--purple2:#4800A8;--yellow:#A88F00;--accent:#5C00D4;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,sans-serif;padding:0;-webkit-font-smoothing:antialiased;}
