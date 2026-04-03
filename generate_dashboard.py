@@ -1513,8 +1513,7 @@ function updateWinnersTable(){
 '''
 
 
-CSS = """@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-*{box-sizing:border-box;margin:0;padding:0;scrollbar-width:thin;scrollbar-color:#ffffff18 transparent;}
+CSS = """*{box-sizing:border-box;margin:0;padding:0;scrollbar-width:thin;scrollbar-color:#ffffff18 transparent;}
 ::-webkit-scrollbar{width:6px;height:6px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:#ffffff18;border-radius:999px;}
@@ -2060,6 +2059,9 @@ def generate_html(finishers, biggest, md, sd, tdb, winners):
 <meta property="og:description" content="186+ evenements running mondiaux : finishers, temps moyens, chronos vainqueurs, sponsoring.">
 <meta property="og:type" content="website">
 <link rel="icon" href="assets/Logo_DataPace_primary.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>{CSS}</style>
 </head>
 <body>
