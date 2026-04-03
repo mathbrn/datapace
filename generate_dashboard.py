@@ -1520,7 +1520,7 @@ select:focus{border-color:var(--purple);color:var(--text);box-shadow:0 0 0 3px r
 .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th{background:var(--bg2);padding:7px 12px;text-align:left;font-weight:400;color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.08em;border-bottom:.5px solid var(--border);}
-td{padding:7px 12px;border-bottom:.5px solid var(--border);color:var(--text2);}
+td{padding:7px 12px;border-bottom:.5px solid var(--border);color:var(--text2);height:36px;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:var(--bg2);color:var(--text);}
 .badge{font-size:10px;font-weight:500;padding:3px 10px;border-radius:100px;}
