@@ -765,7 +765,7 @@ function initBiggestYears(){
   if(prev&&allYears.indexOf(+prev)>=0)sel.value=prev;
 }
 
-function colDistOnly(r){return lc(r.d==='10KM'?'#5CDFA0':r.d==='SEMI'?'#FF8A50':'#5C00D4');}
+function colDistOnly(r){return lc(r.d==='10KM'?'#5CDFA0':r.d==='SEMI'?'#FF8A50':r.d==='AUTRE'?'#F472B6':'#5C00D4');}
 function updateBiggest(){
   var n=parseInt(document.getElementById('topn-biggest').value);
   var yr=parseInt(document.getElementById('year-biggest').value);
@@ -1962,6 +1962,7 @@ HTML_BODY = """
     <span class="leg-item"><span class="leg-dot" style="background:#5C00D4"></span>Marathon</span>
     <span class="leg-item"><span class="leg-dot" style="background:#FF8A50"></span>Semi-marathon</span>
     <span class="leg-item"><span class="leg-dot" style="background:#5CDFA0"></span>10 km</span>
+    <span class="leg-item"><span class="leg-dot" style="background:#F472B6"></span>Autre</span>
   </div>
   <div class="time-bar-wrap" id="biggest-bars" style="max-height:none"></div>
 </div>
@@ -1996,7 +1997,7 @@ HTML_BODY = """
   <div class="metrics" id="metrics-temps"></div>
   <div class="section-title">Temps moyen par course</div>
   <div class="legend">
-    <span class="leg-item"><span class="leg-dot" style="background:#5C00D4"></span>Autre</span>
+    <span class="leg-item"><span class="leg-dot" style="background:#F472B6"></span>Autre</span>
 
     <span class="leg-item"><span class="leg-dot" style="background:#38BDF8"></span>World Marathon Majors</span>
   </div>
