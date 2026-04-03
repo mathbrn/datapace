@@ -549,6 +549,7 @@ function toMin(t){if(!t)return null;var p=String(t).split(':');if(p.length===3)r
 function fmt(n){if(n===-1)return'Annulé';if(n===-2)return'Elite';if(n===-3)return'';if(!n||isNaN(n))return'—';return n>=1000?(n/1000).toFixed(1)+'k':n.toString();}
 function fmtFull(n){if(n===-1)return'Annulé';if(n===-2)return'Elite Only';if(n===-3)return'';if(!n||isNaN(n))return'—';return Math.round(n).toLocaleString('fr-FR');}
 function delta(a,b){if(!a||!b||isNaN(a)||isNaN(b))return null;return((b-a)/a*100);}
+function lightenHex(hex,amt){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);r=Math.min(255,r+Math.round((255-r)*amt));g=Math.min(255,g+Math.round((255-g)*amt));b=Math.min(255,b+Math.round((255-b)*amt));return'#'+[r,g,b].map(function(c){return c.toString(16).padStart(2,'0');}).join('');}
 function hv(r,yr){return(r.hist||{})[yr]||null;}
 function lastFin(r){var ks=Object.keys(r.hist||{}).map(Number).filter(function(y){var v=(r.hist||{})[y];return v&&v>0;}).sort(function(a,b){return b-a;});return ks.length?{yr:ks[0],v:(r.hist||{})[ks[0]]}:null;}
 function fmtHM(mins){var h=Math.floor(mins/60),m=Math.round(mins%60);return h+'h'+String(m).padStart(2,'0');}
@@ -791,6 +792,7 @@ function ovSelect(idx){
   document.querySelectorAll('.ov-result-item').forEach(function(el){el.classList.toggle('selected',parseInt(el.dataset.idx)===idx);});
   var ev=RAW[idx];
   var ac=colDist(ev);
+  var acLight=lightenHex(ac,0.4);
   var dl=ev.d==='MARATHON'?'Marathon':ev.d==='SEMI'?'Semi-marathon':ev.d==='AUTRE'?'Autre':'10 km';
   // Gather data
   var histKeys=Object.keys(ev.hist||{}).map(Number).sort(function(a,b){return a-b;});
@@ -815,10 +817,10 @@ function ovSelect(idx){
   if(td&&td.avg){stats+=ovMetric('Temps moyen ('+td.yr+')',td.avg,'#888');}
   var menVal=wr&&wr.men?wr.men:(td&&td.men?td.men:null);
   var menYr=wr&&wr.menYr?wr.menYr:(td?td.yr:null);
-  if(menVal){stats+=ovMetric('Record homme'+(menYr?' ('+menYr+')':''),menVal,'#22C55E');}
+  if(menVal){stats+=ovMetric('Record homme'+(menYr?' ('+menYr+')':''),menVal,ac);}
   var wmVal=wr&&wr.women?wr.women:(td&&td.women?td.women:null);
   var wmYr=wr&&wr.womenYr?wr.womenYr:(td?td.yr:null);
-  if(wmVal){stats+=ovMetric('Record femme'+(wmYr?' ('+wmYr+')':''),wmVal,'#FCDB00');}
+  if(wmVal){stats+=ovMetric('Record femme'+(wmYr?' ('+wmYr+')':''),wmVal,acLight);}
   stats+='</div>';
 
   // --- Build charts section adaptively ---
@@ -841,13 +843,13 @@ function ovSelect(idx){
   if(wh.men.length>=2){
     charts2Html+='<div class="ov-chart-box"><div class="ov-chart-label">Record Homme par edition</div><div style="position:relative;height:150px"><canvas id="ov-chart-men"></canvas></div></div>';
   } else if(wh.men.length===1){
-    charts2Html+='<div class="ov-chart-box"><div class="ov-chart-label">Record Homme</div><div style="text-align:center;padding:2rem 0"><div style="font-size:22px;font-weight:700;color:#22C55E">'+wh.men[0].time+'</div><div style="font-size:12px;color:var(--text3);margin-top:4px">en '+wh.men[0].yr+'</div></div></div>';
+    charts2Html+='<div class="ov-chart-box"><div class="ov-chart-label">Record Homme</div><div style="text-align:center;padding:2rem 0"><div style="font-size:22px;font-weight:700;color:'+ac+'">'+wh.men[0].time+'</div><div style="font-size:12px;color:var(--text3);margin-top:4px">en '+wh.men[0].yr+'</div></div></div>';
   }
   // Record femme chart/card
   if(wh.women.length>=2){
     charts2Html+='<div class="ov-chart-box"><div class="ov-chart-label">Record Femme par edition</div><div style="position:relative;height:150px"><canvas id="ov-chart-women"></canvas></div></div>';
   } else if(wh.women.length===1){
-    charts2Html+='<div class="ov-chart-box"><div class="ov-chart-label">Record Femme</div><div style="text-align:center;padding:2rem 0"><div style="font-size:22px;font-weight:700;color:#FCDB00">'+wh.women[0].time+'</div><div style="font-size:12px;color:var(--text3);margin-top:4px">en '+wh.women[0].yr+'</div></div></div>';
+    charts2Html+='<div class="ov-chart-box"><div class="ov-chart-label">Record Femme</div><div style="text-align:center;padding:2rem 0"><div style="font-size:22px;font-weight:700;color:'+acLight+'">'+wh.women[0].time+'</div><div style="font-size:12px;color:var(--text3);margin-top:4px">en '+wh.women[0].yr+'</div></div></div>';
   }
 
   // --- Context banner ---
@@ -903,7 +905,7 @@ function ovSelect(idx){
   var mcv=document.getElementById('ov-chart-men');
   if(mcv&&wh.men.length>=2){
     ovChartM=new Chart(mcv,{type:'line',
-      data:{labels:wh.men.map(function(e){return e.yr;}),datasets:[{data:wh.men.map(function(e){return e.sec/60;}),borderColor:'#22C55E',backgroundColor:'rgba(34,197,94,0.08)',tension:0.3,pointRadius:4,pointBackgroundColor:'#22C55E',borderWidth:2,fill:true}]},
+      data:{labels:wh.men.map(function(e){return e.yr;}),datasets:[{data:wh.men.map(function(e){return e.sec/60;}),borderColor:ac,backgroundColor:ac+'14',tension:0.3,pointRadius:4,pointBackgroundColor:ac,borderWidth:2,fill:true}]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:false},tooltip:{backgroundColor:mkTT().backgroundColor,borderColor:mkTT().borderColor,borderWidth:1,titleColor:mkTT().titleColor,bodyColor:mkTT().bodyColor,padding:10,callbacks:{label:function(ctx){var i=ctx.dataIndex;return' '+wh.men[i].time;}}}},
         scales:{x:{grid:{display:false},ticks:{color:'#555',font:{size:10}},border:{display:false}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555',font:{size:10},callback:function(v){return fmtHM(v);}},border:{display:false}}}
@@ -914,7 +916,7 @@ function ovSelect(idx){
   var wcv=document.getElementById('ov-chart-women');
   if(wcv&&wh.women.length>=2){
     ovChartW=new Chart(wcv,{type:'line',
-      data:{labels:wh.women.map(function(e){return e.yr;}),datasets:[{data:wh.women.map(function(e){return e.sec/60;}),borderColor:'#FCDB00',backgroundColor:'rgba(252,219,0,0.08)',tension:0.3,pointRadius:4,pointBackgroundColor:'#FCDB00',borderWidth:2,fill:true}]},
+      data:{labels:wh.women.map(function(e){return e.yr;}),datasets:[{data:wh.women.map(function(e){return e.sec/60;}),borderColor:acLight,backgroundColor:acLight+'14',tension:0.3,pointRadius:4,pointBackgroundColor:acLight,borderWidth:2,fill:true}]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:false},tooltip:{backgroundColor:mkTT().backgroundColor,borderColor:mkTT().borderColor,borderWidth:1,titleColor:mkTT().titleColor,bodyColor:mkTT().bodyColor,padding:10,callbacks:{label:function(ctx){var i=ctx.dataIndex;return' '+wh.women[i].time;}}}},
         scales:{x:{grid:{display:false},ticks:{color:'#555',font:{size:10}},border:{display:false}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555',font:{size:10},callback:function(v){return fmtHM(v);}},border:{display:false}}}
