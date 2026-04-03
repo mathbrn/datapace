@@ -166,7 +166,6 @@ def load_finishers():
         rows.append({"p": str(r.get("Période", "")).strip(), "c": city,
                      "d": str(r.get("Distance", "")).strip(), "r": race,
                      "rg": get_region(city),
-                     "y3": gv(2023), "y4": gv(2024), "y5": gv(2025), "y6": gv(2026),
                      "hist": hist, "fy": first_yr})
     print(f"  Finishers  : {len(rows)} courses")
     return rows
@@ -190,7 +189,6 @@ def load_biggest():
         hist = {yr: v for yr in year_cols if (v := gv(yr)) is not None}
         city = str(r.get("City", "")).strip()
         rows.append({"c": city, "r": race, "rg": get_region(city),
-                     "y3": gv(2023), "y4": gv(2024), "y5": gv(2025), "y6": gv(2026),
                      "hist": hist})
     print(f"  Biggest    : {len(rows)} courses")
     return rows
@@ -356,6 +354,8 @@ function toMin(t){if(!t)return null;var p=String(t).split(':');if(p.length===3)r
 function fmt(n){if(n===-1)return'Annul\u00e9';if(n===-2)return'Elite';if(n===-3)return'';if(!n||isNaN(n))return'\u2014';return n>=1000?(n/1000).toFixed(1)+'k':n.toString();}
 function fmtFull(n){if(n===-1)return'Annul\u00e9';if(n===-2)return'Elite Only';if(n===-3)return'';if(!n||isNaN(n))return'\u2014';return Math.round(n).toLocaleString('fr-FR');}
 function delta(a,b){if(!a||!b||isNaN(a)||isNaN(b))return null;return((b-a)/a*100);}
+function hv(r,yr){return(r.hist||{})[yr]||null;}
+function lastFin(r){var ks=Object.keys(r.hist||{}).map(Number).filter(function(y){var v=(r.hist||{})[y];return v&&v>0;}).sort(function(a,b){return b-a;});return ks.length?{yr:ks[0],v:(r.hist||{})[ks[0]]}:null;}
 function fmtHM(mins){var h=Math.floor(mins/60),m=Math.round(mins%60);return h+'h'+String(m).padStart(2,'0');}
 function fmtHMMin(mins){return fmtHM(mins)+'min';}
 function csVar(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
@@ -510,8 +510,8 @@ function switchTab(name){
   if(name==='sponsoring'&&!window._spInit){window._spInit=true;initSponsoring();}
 }
 function updateInsights(){
-  var items=RAW.filter(function(r){return r.y3&&r.y3>0&&r.y5&&r.y5>0&&!isNaN(r.y3)&&!isNaN(r.y5);});
-  var withDelta=items.map(function(r){return{name:r.r,d:r.d,v3:r.y3,v5:r.y5,pct:((r.y5-r.y3)/r.y3*100)};});
+  var items=RAW.filter(function(r){var a=hv(r,2023),b=hv(r,2025);return a&&a>0&&b&&b>0;});
+  var withDelta=items.map(function(r){var a=hv(r,2023),b=hv(r,2025);return{name:r.r,d:r.d,v3:a,v5:b,pct:((b-a)/a*100)};});
   withDelta.sort(function(a,b){return b.pct-a.pct;});
   var top5=withDelta.slice(0,5);
   var bot5=withDelta.slice(-5).reverse();
@@ -556,7 +556,7 @@ function ovSelect(idx){
   var dl=ev.d==='MARATHON'?'Marathon':ev.d==='SEMI'?'Semi-marathon':ev.d==='AUTRE'?'Autre':'10 km';
   var histKeys=Object.keys(ev.hist||{}).map(Number).sort(function(a,b){return a-b;});
   var finHistory=histKeys.map(function(yr){return{yr:yr,v:(ev.hist||{})[yr]};}).filter(function(e){return e.v&&!isNaN(e.v);});
-  if(!finHistory.length)finHistory=[{yr:2023,v:ev.y3},{yr:2024,v:ev.y4},{yr:2025,v:ev.y5},{yr:2026,v:ev.y6}].filter(function(e){return e.v&&!isNaN(e.v);});
+  if(!finHistory.length)finHistory=[];
   var lastEd=finHistory[finHistory.length-1];
   var td=getTimeData(ev.r);
   var wr=getWinnersRecords(ev.r);
@@ -1228,25 +1228,23 @@ function renderCompare(){
   var wrB = getWinnersRecords(b.r);
 
   // Last finishers
-  var fA = a.y6||a.y5||a.y4||a.y3;
-  var fB = b.y6||b.y5||b.y4||b.y3;
-  var fYrA = a.y6?2026:a.y5?2025:a.y4?2024:2023;
-  var fYrB = b.y6?2026:b.y5?2025:b.y4?2024:2023;
+  var lfA=lastFin(a),lfB=lastFin(b);
+  var fA=lfA?lfA.v:null,fB=lfB?lfB.v:null;
+  var fYrA=lfA?lfA.yr:0,fYrB=lfB?lfB.yr:0;
 
   // Evolution premiere annee disponible -> derniere
   var evoA = null, evoB = null;
   var evoStrA = '-', evoStrB = '-';
   var evoSubA = '', evoSubB = '';
-  var haKeys=Object.keys(a.hist||{}).map(Number).sort(function(x,y){return x-y;});
+  var haKeys=Object.keys(a.hist||{}).map(Number).filter(function(y){var v=(a.hist||{})[y];return v&&v>0;}).sort(function(x,y){return x-y;});
   var haFirst=haKeys.length?haKeys[0]:null;
   var haFirstV=haFirst?(a.hist||{})[haFirst]:null;
-  if(haFirstV&&fA){evoA=((fA-haFirstV)/haFirstV*100);evoStrA=(evoA>=0?'+':'')+evoA.toFixed(1)+'%';evoSubA=fmtFull(haFirstV)+' ('+haFirst+') \u2192 '+fmtFull(fA)+' ('+fYrA+')';}
-  else if(a.y3&&fA){evoA=((fA-a.y3)/a.y3*100);evoStrA=(evoA>=0?'+':'')+evoA.toFixed(1)+'%';evoSubA=fmtFull(a.y3)+' \u2192 '+fmtFull(fA);}
-  var hbKeys=Object.keys(b.hist||{}).map(Number).sort(function(x,y){return x-y;});
+  if(haFirstV&&fA&&haFirst!==fYrA){evoA=((fA-haFirstV)/haFirstV*100);evoStrA=(evoA>=0?'+':'')+evoA.toFixed(1)+'%';evoSubA=fmtFull(haFirstV)+' ('+haFirst+') \u2192 '+fmtFull(fA)+' ('+fYrA+')';}
+  var hbKeys=Object.keys(b.hist||{}).map(Number).filter(function(y){var v=(b.hist||{})[y];return v&&v>0;}).sort(function(x,y){return x-y;});
   var hbFirst=hbKeys.length?hbKeys[0]:null;
   var hbFirstV=hbFirst?(b.hist||{})[hbFirst]:null;
-  if(hbFirstV&&fB){evoB=((fB-hbFirstV)/hbFirstV*100);evoStrB=(evoB>=0?'+':'')+evoB.toFixed(1)+'%';evoSubB=fmtFull(hbFirstV)+' ('+hbFirst+') \u2192 '+fmtFull(fB)+' ('+fYrB+')';}
-  else if(b.y3&&fB){evoB=((fB-b.y3)/b.y3*100);evoStrB=(evoB>=0?'+':'')+evoB.toFixed(1)+'%';evoSubB=fmtFull(b.y3)+' \u2192 '+fmtFull(fB);}
+  if(hbFirstV&&fB&&hbFirst!==fYrB){evoB=((fB-hbFirstV)/hbFirstV*100);evoStrB=(evoB>=0?'+':'')+evoB.toFixed(1)+'%';evoSubB=fmtFull(hbFirstV)+' ('+hbFirst+') \u2192 '+fmtFull(fB)+' ('+fYrB+')';}
+
 
   var distA = a.d==='MARATHON'?'Marathon':a.d==='SEMI'?'Semi-marathon':a.d==='AUTRE'?'Autre':'10 km';
   var distB = b.d==='MARATHON'?'Marathon':b.d==='SEMI'?'Semi-marathon':b.d==='AUTRE'?'Autre':'10 km';
@@ -1956,7 +1954,7 @@ HTML_BODY = """
   </div>
   <div class="table-wrap">
     <table id="data-table">
-      <thead><tr id="table-head-row"><th>Mois</th><th>Ville</th><th>Distance</th><th>Epreuve</th><th>2023</th><th>2024</th><th>2025</th><th>2026</th><th>Tendance</th></tr></thead>
+      <thead><tr id="table-head-row"><th>Mois</th><th>Ville</th><th>Distance</th><th>Epreuve</th><th>Tendance</th></tr></thead>
       <tbody id="table-body"></tbody>
     </table>
   </div>
