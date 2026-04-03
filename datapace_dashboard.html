@@ -583,12 +583,13 @@ function buildOvSponsoring(eventName,eventColor){
   if(!parts.length)return '';
   var byType={title:[],premium:[],major:[],official:[],partner:[]};
   parts.forEach(function(p){(byType[p.type]||byType.partner).push(p);});
+  var ecLight=lightenHex(ec,0.3);
   var tConf={
-    title:{label:'TITRE',border:'#FCDB00',text:'#FCDB00',bg:'rgba(252,219,0,0.06)'},
-    premium:{label:'PREMIUM',border:'#FCDB0080',text:'#FCDB00',bg:'rgba(252,219,0,0.04)'},
-    major:{label:'MAJEUR',border:'#5C00D480',text:'#9B6FFF',bg:'rgba(92,0,212,0.04)'},
-    official:{label:'OFFICIEL',border:'#5C00D4',text:'#9B6FFF',bg:'rgba(92,0,212,0.06)'},
-    partner:{label:'FOURNISSEUR',border:'#ffffff30',text:'#888',bg:'transparent'}
+    title:{label:'TITRE',border:ec,text:'#fff',bg:ec+'26'},
+    premium:{label:'PREMIUM',border:ec+'B3',text:ecLight,bg:ec+'1F'},
+    major:{label:'MAJEUR',border:ec+'B3',text:ecLight,bg:ec+'1F'},
+    official:{label:'OFFICIEL',border:ec+'80',text:ec,bg:ec+'14'},
+    partner:{label:'FOURNISSEUR',border:'#ffffff25',text:'#888',bg:'transparent'}
   };
   var h='<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">'
     +'<div class="ov-chart-label" style="margin-bottom:10px">Partenaires '+now+'</div>';
@@ -597,7 +598,7 @@ function buildOvSponsoring(eventName,eventColor){
     var tc=tConf[t];
     var names=items.map(function(p){return'<span style="font-size:12px;color:var(--text);" title="'+p.brand+' ('+p.years[0]+'-'+p.years[p.years.length-1]+')">'+p.brand+'</span>';}).join('<span style="color:var(--text3);margin:0 2px;">,</span> ');
     h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">'
-      +'<span style="font-size:9px;font-weight:600;letter-spacing:.1em;padding:3px 8px;border-radius:100px;border:1px solid '+tc.border+';color:'+tc.text+';background:'+tc.bg+';flex-shrink:0;">'+tc.label+'</span>'
+      +'<span style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:100px;border:1px solid '+tc.border+';color:'+tc.text+';background:'+tc.bg+';flex-shrink:0;">'+tc.label+'</span>'
       +names+'</div>';
   });
   h+='</div>';
