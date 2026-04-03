@@ -137,10 +137,13 @@ tr:hover td{background:var(--bg2);color:var(--text);}
 .cmp-cell.r{justify-content:flex-end;}
 .cmp-mid{padding:12px 16px;display:flex;align-items:center;justify-content:center;border-left:.5px solid var(--border);border-right:.5px solid var(--border);background:var(--bg2);}
 .cmp-mid-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;text-align:center;}
-.cmp-val-win{font-size:16px;font-weight:500;color:#22C55E;}
-.cmp-val-lose{font-size:14px;font-weight:500;color:var(--text2);}
-.cmp-bar{height:2px;background:#22C55E;border-radius:1px;margin-top:3px;}
-.cmp-dot{width:5px;height:5px;border-radius:50%;background:#22C55E;flex-shrink:0;}
+.cmp-val-win{font-size:16px;font-weight:700;}
+.cmp-val-lose{font-size:14px;font-weight:500;color:var(--text3);}
+.cmp-bar{display:none;}
+.cmp-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.cmp-row-win-a .cmp-cell:first-child{border-left:2px solid var(--cmp-col-a,var(--purple));}
+.cmp-row-win-b .cmp-cell:last-child{border-right:2px solid var(--cmp-col-b,var(--purple));}
+.cmp-input{height:34px;font-size:13px;padding:6px 10px 6px 28px;}
 .cmp-sub{font-size:11px;color:var(--text3);margin-top:2px;}
 .cmp-placeholder{color:var(--text3);font-size:12px;padding:2rem;text-align:center;border:.5px solid var(--border);border-radius:6px;}
 #data-table.tbl-frozen{table-layout:fixed;width:max-content;min-width:100%;}
@@ -1529,85 +1532,103 @@ function cmpRow(labelA, labelB, catLabel, winA){
 }
 
 function renderCompare(){
-  var a = cmpSelectedA;
-  var b = cmpSelectedB;
-  var tdA = getTimeData(a.r);
-  var tdB = getTimeData(b.r);
-  var wrA = getWinnersRecords(a.r);
-  var wrB = getWinnersRecords(b.r);
+  var a = cmpSelectedA, b = cmpSelectedB;
+  var colA=colDist(a), colB=colDist(b);
+  var tdA=getTimeData(a.r), tdB=getTimeData(b.r);
+  var wrA=getWinnersRecords(a.r), wrB=getWinnersRecords(b.r);
 
-  // Last finishers
   var lfA=lastFin(a),lfB=lastFin(b);
   var fA=lfA?lfA.v:null,fB=lfB?lfB.v:null;
   var fYrA=lfA?lfA.yr:0,fYrB=lfB?lfB.yr:0;
 
-  // Evolution premiere annee disponible -> derniere
-  var evoA = null, evoB = null;
-  var evoStrA = '-', evoStrB = '-';
-  var evoSubA = '', evoSubB = '';
-  var haKeys=Object.keys(a.hist||{}).map(Number).filter(function(y){var v=(a.hist||{})[y];return v&&v>0;}).sort(function(x,y){return x-y;});
-  var haFirst=haKeys.length?haKeys[0]:null;
-  var haFirstV=haFirst?(a.hist||{})[haFirst]:null;
-  if(haFirstV&&fA&&haFirst!==fYrA){evoA=((fA-haFirstV)/haFirstV*100);evoStrA=(evoA>=0?'+':'')+evoA.toFixed(1)+'%';evoSubA=fmtFull(haFirstV)+' ('+haFirst+') → '+fmtFull(fA)+' ('+fYrA+')';}
-  var hbKeys=Object.keys(b.hist||{}).map(Number).filter(function(y){var v=(b.hist||{})[y];return v&&v>0;}).sort(function(x,y){return x-y;});
-  var hbFirst=hbKeys.length?hbKeys[0]:null;
-  var hbFirstV=hbFirst?(b.hist||{})[hbFirst]:null;
-  if(hbFirstV&&fB&&hbFirst!==fYrB){evoB=((fB-hbFirstV)/hbFirstV*100);evoStrB=(evoB>=0?'+':'')+evoB.toFixed(1)+'%';evoSubB=fmtFull(hbFirstV)+' ('+hbFirst+') → '+fmtFull(fB)+' ('+fYrB+')';}
+  // Evolution
+  function calcEvo(r){
+    var ks=Object.keys(r.hist||{}).map(Number).filter(function(y){var v=(r.hist||{})[y];return v&&v>0;}).sort(function(x,y){return x-y;});
+    if(ks.length<2)return{pct:null,str:'-',sub:''};
+    var first=ks[0],last=ks[ks.length-1],fv=(r.hist||{})[first],lv=(r.hist||{})[last];
+    var p=((lv-fv)/fv*100);
+    return{pct:p,str:(p>=0?'+':'')+p.toFixed(1)+'%',sub:first+' → '+last};
+  }
+  var eA=calcEvo(a),eB=calcEvo(b);
 
+  var distA=a.d==='MARATHON'?'Marathon':a.d==='SEMI'?'Semi-marathon':a.d==='AUTRE'?'Autre':'10 km';
+  var distB=b.d==='MARATHON'?'Marathon':b.d==='SEMI'?'Semi-marathon':b.d==='AUTRE'?'Autre':'10 km';
+  var statA=isWmm(a.r)?'World Marathon Majors':'—';
+  var statB=isWmm(b.r)?'World Marathon Majors':'—';
 
-  var distA = a.d==='MARATHON'?'Marathon':a.d==='SEMI'?'Semi-marathon':a.d==='AUTRE'?'Autre':'10 km';
-  var distB = b.d==='MARATHON'?'Marathon':b.d==='SEMI'?'Semi-marathon':b.d==='AUTRE'?'Autre':'10 km';
-  var asoA = isWmm(a.r)?'WMM':'';
-  var asoB = isWmm(b.r)?'WMM':'';
+  var avgA=tdA?tdA.avg:null, avgB=tdB?tdB.avg:null;
+  var menA=wrA&&wrA.men?wrA.men:(tdA?tdA.men:null);
+  var menB=wrB&&wrB.men?wrB.men:(tdB?tdB.men:null);
+  var wmA=wrA&&wrA.women?wrA.women:(tdA?tdA.women:null);
+  var wmB=wrB&&wrB.women?wrB.women:(tdB?tdB.women:null);
 
-  var avgA = tdA?tdA.avg:null;
-  var avgB = tdB?tdB.avg:null;
-  var menA = wrA&&wrA.men?wrA.men:(tdA?tdA.men:null);
-  var menB = wrB&&wrB.men?wrB.men:(tdB?tdB.men:null);
-  var wmA  = wrA&&wrA.women?wrA.women:(tdA?tdA.women:null);
-  var wmB  = wrB&&wrB.women?wrB.women:(tdB?tdB.women:null);
+  var winFin=fA&&fB?(fA>fB?true:fA<fB?false:null):null;
+  var winAvg=avgA&&avgB?(cmpTimeToMin(avgA)<cmpTimeToMin(avgB)?true:cmpTimeToMin(avgA)>cmpTimeToMin(avgB)?false:null):null;
+  var winMen=menA&&menB?(cmpTimeToMin(menA)<cmpTimeToMin(menB)?true:cmpTimeToMin(menA)>cmpTimeToMin(menB)?false:null):null;
+  var winWm=wmA&&wmB?(cmpTimeToMin(wmA)<cmpTimeToMin(wmB)?true:cmpTimeToMin(wmA)>cmpTimeToMin(wmB)?false:null):null;
+  var winEvo=eA.pct!==null&&eB.pct!==null?(eA.pct>eB.pct?true:eA.pct<eB.pct?false:null):null;
 
-  // Win conditions
-  var winFin   = fA&&fB ? (fA>fB?true:fA<fB?false:null) : null;
-  var winAvg   = avgA&&avgB ? (cmpTimeToMin(avgA)<cmpTimeToMin(avgB)?true:cmpTimeToMin(avgA)>cmpTimeToMin(avgB)?false:null) : null;
-  var winMen   = menA&&menB ? (cmpTimeToMin(menA)<cmpTimeToMin(menB)?true:cmpTimeToMin(menA)>cmpTimeToMin(menB)?false:null) : null;
-  var winWm    = wmA&&wmB  ? (cmpTimeToMin(wmA)<cmpTimeToMin(wmB)?true:cmpTimeToMin(wmA)>cmpTimeToMin(wmB)?false:null) : null;
-  var winEvo   = evoA!==null&&evoB!==null ? (evoA>evoB?true:evoA<evoB?false:null) : null;
+  function winCol(winA){return winA===true?colA:winA===false?colB:'var(--text3)';}
+  function cmpR(valA,valB,label,winA,subA,subB){
+    var wc=winCol(winA);
+    var clsA=winA===true?'cmp-val-win':'cmp-val-lose';
+    var clsB=winA===false?'cmp-val-win':'cmp-val-lose';
+    var styleA=winA===true?'style="color:'+colA+'"':'';
+    var styleB=winA===false?'style="color:'+colB+'"':'';
+    var dotA=winA===true?'<div class="cmp-dot" style="background:'+colA+'"></div>':'';
+    var dotB=winA===false?'<div class="cmp-dot" style="background:'+colB+'"></div>':'';
+    var blA=winA===true?'border-left:2px solid '+colA:'';
+    var brB=winA===false?'border-right:2px solid '+colB:'';
+    return'<div class="cmp-row">'
+      +'<div class="cmp-cell" style="'+blA+'"><div><div class="'+clsA+'" '+styleA+'>'+valA+'</div>'+(subA?'<div class="cmp-sub">'+subA+'</div>':'')+'</div>'+dotA+'</div>'
+      +'<div class="cmp-mid"><div class="cmp-mid-label">'+label+'</div></div>'
+      +'<div class="cmp-cell r" style="'+brB+'">'+dotB+'<div style="text-align:right"><div class="'+clsB+'" '+styleB+'>'+valB+'</div>'+(subB?'<div class="cmp-sub">'+subB+'</div>':'')+'</div></div>'
+      +'</div>';
+  }
 
-  var finLblA = fA?fmtFull(fA)+' ('+fYrA+')':'-';
-  var finLblB = fB?fmtFull(fB)+' ('+fYrB+')':'-';
+  var finLblA=fA?fmtFull(fA)+' ('+fYrA+')':'-';
+  var finLblB=fB?fmtFull(fB)+' ('+fYrB+')':'-';
 
-  var html = '<div class="cmp-wrap">'
+  var html='<div class="cmp-wrap" style="--cmp-col-a:'+colA+';--cmp-col-b:'+colB+';">'
     +'<div class="cmp-header">'
-    +'<div class="cmp-header-cell"><div class="cmp-race-name">'+a.r+'</div><div class="cmp-race-meta">'+a.c+' &middot; '+a.p+' &middot; '+distA+'</div></div>'
+    +'<div class="cmp-header-cell"><div class="cmp-race-name" style="color:'+colA+'">'+a.r+'</div><div class="cmp-race-meta">'+a.c+' &middot; '+a.p+' &middot; '+distA+'</div></div>'
     +'<div class="cmp-header-cell ctr"><div class="cmp-mid-label">Categorie</div></div>'
-    +'<div class="cmp-header-cell" style="text-align:right"><div class="cmp-race-name">'+b.r+'</div><div class="cmp-race-meta">'+b.c+' &middot; '+b.p+' &middot; '+distB+'</div></div>'
+    +'<div class="cmp-header-cell" style="text-align:right"><div class="cmp-race-name" style="color:'+colB+'">'+b.r+'</div><div class="cmp-race-meta">'+b.c+' &middot; '+b.p+' &middot; '+distB+'</div></div>'
     +'</div>';
 
-  // Finishers row
-  html += buildCmpRow(finLblA, finLblB, 'Finishers', winFin, '', '');
-  // Temps moyen
-  html += buildCmpRow(avgA||'-', avgB||'-', 'Temps moyen', winAvg, '', '');
-  // Record homme
-  html += buildCmpRow(menA||'-', menB||'-', 'Record homme', winMen, '', '');
-  // Record femme
-  html += buildCmpRow(wmA||'-', wmB||'-', 'Record femme', winWm, '', '');
-  // Evolution
-  html += buildCmpRowEvo(evoStrA, evoStrB, 'Evolution', winEvo, evoSubA, evoSubB);
-  // Statut
-  html += buildCmpRow(asoA, asoB, 'Statut', null, '', '');
+  html+=cmpR(finLblA,finLblB,'Finishers',winFin,'','');
+  html+=cmpR(avgA||'-',avgB||'-','Temps moyen',winAvg,'','');
+  html+=cmpR(menA||'-',menB||'-','Record homme',winMen,'','');
+  html+=cmpR(wmA||'-',wmB||'-','Record femme',winWm,'','');
+  html+=cmpR(eA.str,eB.str,'Evolution',winEvo,eA.sub,eB.sub);
+  html+=cmpR(statA,statB,'Statut',null,'','');
 
-  html += '</div>';
-  document.getElementById('cmp-result').innerHTML = html;
+  html+='</div>';
+  // Chart
+  html+='<div style="margin-top:1.5rem;"><div class="ov-chart-label" style="margin-bottom:8px">Evolution comparee des finishers</div><div style="position:relative;height:200px;"><canvas id="cmp-chart"></canvas></div></div>';
 
-  // Fix bar widths after render
-  setTimeout(function(){
-    fixCmpBar('Finishers', winFin);
-    fixCmpBar('Tempsmoyen', winAvg);
-    fixCmpBar('Recordhomme', winMen);
-    fixCmpBar('Recordfemme', winWm);
-    fixCmpBarEvo(winEvo);
-  }, 50);
+  document.getElementById('cmp-result').innerHTML=html;
+
+  // Render compare chart
+  if(window._cmpChart)window._cmpChart.destroy();
+  var cc=document.getElementById('cmp-chart');
+  if(cc){
+    var aHist=Object.keys(a.hist||{}).map(Number).filter(function(y){var v=(a.hist||{})[y];return v&&v>0;});
+    var bHist=Object.keys(b.hist||{}).map(Number).filter(function(y){var v=(b.hist||{})[y];return v&&v>0;});
+    var allYrs=[].concat(aHist,bHist);allYrs=allYrs.filter(function(v,i,s){return s.indexOf(v)===i;}).sort(function(x,y){return x-y;});
+    window._cmpChart=new Chart(cc,{type:'line',
+      data:{labels:allYrs.map(String),datasets:[
+        {label:a.r,data:allYrs.map(function(yr){var v=(a.hist||{})[yr];return v&&v>0?v:null;}),borderColor:colA,backgroundColor:'transparent',tension:0.3,pointRadius:4,pointBackgroundColor:colA,borderWidth:2,spanGaps:true},
+        {label:b.r,data:allYrs.map(function(yr){var v=(b.hist||{})[yr];return v&&v>0?v:null;}),borderColor:colB,backgroundColor:'transparent',tension:0.3,pointRadius:4,pointBackgroundColor:colB,borderWidth:2,borderDash:[6,4],spanGaps:true}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:true,labels:{color:mkTICK().color,font:{size:11},usePointStyle:true,pointStyle:'line',boxWidth:20}},
+          tooltip:{backgroundColor:mkTT().backgroundColor,borderColor:mkTT().borderColor,borderWidth:1,titleColor:mkTT().titleColor,bodyColor:mkTT().bodyColor,padding:10,callbacks:{label:function(ctx){return' '+ctx.dataset.label+': '+fmtFull(ctx.parsed.y);}}}},
+        scales:{x:{grid:{display:false},ticks:{color:'#555',font:{size:10},maxRotation:0,minRotation:0,autoSkip:true,maxTicksLimit:12},border:{display:false}},
+          y:{beginAtZero:true,grid:{color:mkGRID()},ticks:{color:'#555',font:{size:10},callback:function(v){return fmt(v);}},border:{display:false}}}
+      }
+    });
+  }
 }
 
 function buildCmpRow(valA, valB, label, winA, subA, subB){
