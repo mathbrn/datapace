@@ -1998,7 +1998,7 @@ def generate_html(finishers, biggest, md, sd, tdb, winners):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DataPace — Dashboard</title>
+<title>DataPace</title>
 <meta name="description" content="Dashboard interactif de 186+ evenements running mondiaux : finishers, temps moyens, chronos vainqueurs, sponsoring. 2000-2026.">
 <meta property="og:title" content="DataPace — Dashboard Running Mondial">
 <meta property="og:description" content="186+ evenements running mondiaux : finishers, temps moyens, chronos vainqueurs, sponsoring.">
