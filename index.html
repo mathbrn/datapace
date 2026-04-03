@@ -9,104 +9,139 @@
 <meta property="og:description" content="186+ événements running mondiaux analysés : finishers, temps moyens, chronos vainqueurs, données sponsoring. 2000-2026.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mathbrn.github.io/datapace/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,700;0,800;1,400;1,500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#0a0a0a;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',sans-serif;-webkit-font-smoothing:antialiased;}
-a{color:#5C00D4;text-decoration:none;}
+body{background:#0a0a0a;color:#e6edf3;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
 
-/* Animations */
-@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
-@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-@keyframes glowPulse{0%,100%{opacity:.4;}50%{opacity:.7;}}
-.fade-up{animation:fadeUp .8s ease-out both;}
-.fade-up-d1{animation:fadeUp .8s ease-out .15s both;}
-.fade-up-d2{animation:fadeUp .8s ease-out .3s both;}
-.fade-up-d3{animation:fadeUp .8s ease-out .45s both;}
-.fade-in{animation:fadeIn 1s ease-out both;}
+/* ── Grain overlay ── */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
 
-/* Hero */
-.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:4rem 2rem;position:relative;overflow:hidden;}
-.hero::before{content:'';position:absolute;top:-40%;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(92,0,212,.12) 0%,transparent 70%);pointer-events:none;animation:glowPulse 6s ease-in-out infinite;}
-.logo{font-size:72px;font-weight:800;letter-spacing:-.04em;margin-bottom:.75rem;background:linear-gradient(135deg,#5C00D4 0%,#9B6FFF 40%,#e6edf3 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;}
-.baseline{font-size:22px;color:#6e7681;margin-bottom:3.5rem;font-weight:400;letter-spacing:-.01em;}
-.cta{display:inline-block;background:linear-gradient(135deg,#5C00D4,#7B2FFF);color:#fff;padding:16px 44px;border-radius:10px;font-size:16px;font-weight:600;transition:all .3s;text-decoration:none;letter-spacing:.01em;box-shadow:0 4px 20px rgba(92,0,212,.25);position:relative;}
-.cta:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(92,0,212,.4);opacity:1;}
-.cta:active{transform:translateY(-1px);}
+/* ── Animations ── */
+@keyframes drift1{0%,100%{transform:translate(-50%,-50%) scale(1);}50%{transform:translate(-45%,-55%) scale(1.15);}}
+@keyframes drift2{0%,100%{transform:translate(-50%,-50%) scale(1.1);}50%{transform:translate(-55%,-45%) scale(.95);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(32px);}to{opacity:1;transform:translateY(0);}}
 
-/* Sections */
-.section{max-width:960px;margin:0 auto;padding:7rem 2rem;}
-.section-title{font-size:32px;font-weight:700;text-align:center;margin-bottom:3.5rem;letter-spacing:-.02em;}
+.f0{animation:fadeUp 1s cubic-bezier(.22,1,.36,1) both;}
+.f1{animation:fadeUp 1s cubic-bezier(.22,1,.36,1) .2s both;}
+.f2{animation:fadeUp 1s cubic-bezier(.22,1,.36,1) .4s both;}
+.f3{animation:fadeUp 1s cubic-bezier(.22,1,.36,1) .55s both;}
+.f4{animation:fadeUp 1s cubic-bezier(.22,1,.36,1) .7s both;}
+.f5{animation:fadeUp 1s cubic-bezier(.22,1,.36,1) .85s both;}
+
+/* ── Hero ── */
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:4rem 2rem;overflow:hidden;z-index:1;}
+
+/* Ambient light orbs */
+.hero .orb{position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none;will-change:transform;}
+.hero .orb-1{width:700px;height:700px;top:30%;left:50%;background:radial-gradient(circle,rgba(92,0,212,.18),transparent 70%);animation:drift1 12s ease-in-out infinite;}
+.hero .orb-2{width:500px;height:500px;top:50%;left:35%;background:radial-gradient(circle,rgba(56,189,248,.10),transparent 70%);animation:drift2 15s ease-in-out infinite;}
+.hero .orb-3{width:400px;height:400px;top:20%;left:65%;background:radial-gradient(circle,rgba(252,219,0,.06),transparent 70%);animation:drift1 18s ease-in-out infinite;}
+
+.hero-title{font-family:'Playfair Display',Georgia,serif;font-weight:800;font-size:clamp(60px,10vw,110px);letter-spacing:-.04em;line-height:.95;margin-bottom:1.25rem;color:#fff;}
+.hero-sub{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:400;font-size:clamp(18px,2.5vw,26px);color:#6e7681;margin-bottom:4rem;letter-spacing:.01em;}
+.hero-cta{display:inline-flex;align-items:center;gap:10px;color:#e6edf3;border:1px solid #3d3d3d;padding:14px 40px;border-radius:50px;font-size:15px;font-weight:500;letter-spacing:.02em;text-decoration:none;transition:all .4s ease;position:relative;overflow:hidden;}
+.hero-cta::before{content:'';position:absolute;inset:0;border-radius:50px;background:linear-gradient(135deg,rgba(92,0,212,.15),rgba(56,189,248,.08));opacity:0;transition:opacity .4s ease;}
+.hero-cta:hover{border-color:#5C00D4;color:#fff;box-shadow:0 0 40px rgba(92,0,212,.2);}
+.hero-cta:hover::before{opacity:1;}
+.hero-cta svg{transition:transform .3s ease;}
+.hero-cta:hover svg{transform:translateX(4px);}
+
+.scroll-hint{position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;color:#3d454e;font-size:11px;letter-spacing:.1em;text-transform:uppercase;}
+.scroll-line{width:1px;height:32px;background:linear-gradient(to bottom,#3d454e,transparent);}
+
+/* ── Section shared ── */
+.section{padding:8rem 2rem;max-width:1040px;margin:0 auto;}
+.section-bg{background:#111113;}
+.section-title{font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:clamp(28px,4vw,40px);text-align:center;margin-bottom:1rem;letter-spacing:-.02em;}
 .section-title em{color:#5C00D4;font-style:normal;}
+.section-desc{text-align:center;color:#4e5561;font-size:15px;margin-bottom:4rem;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.7;}
 
-/* Cards */
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;}
-@media(max-width:700px){.cards{grid-template-columns:1fr;}}
-.card{background:#111318;border:1px solid #1e2028;border-radius:14px;padding:2.25rem 1.75rem;text-align:center;transition:all .35s ease;position:relative;overflow:hidden;}
-.card::before{content:'';position:absolute;inset:-1px;border-radius:14px;padding:1px;background:linear-gradient(135deg,transparent 40%,#5C00D4 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .35s ease;}
-.card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(92,0,212,.12);}
-.card:hover::before{opacity:1;}
-.card-icon{font-size:36px;margin-bottom:1.25rem;}
-.card-title{font-size:17px;font-weight:600;margin-bottom:.75rem;}
-.card-desc{font-size:14px;color:#6e7681;line-height:1.7;}
+/* ── Cards ── */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;}
+@media(max-width:740px){.cards{grid-template-columns:1fr;max-width:400px;margin:0 auto;}}
+.card{background:#0d0d10;border:1px solid #1a1a20;border-radius:16px;padding:2.5rem 2rem;text-align:center;position:relative;overflow:hidden;transition:transform .4s ease,box-shadow .4s ease;}
+.card::before{content:'';position:absolute;inset:-1px;border-radius:16px;padding:1px;background:conic-gradient(from 180deg at 50% 50%,transparent 0%,#5C00D4 25%,transparent 50%,#38BDF8 75%,transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .5s ease;}
+.card:hover{transform:translateY(-6px);box-shadow:0 20px 60px rgba(92,0,212,.1);}
+.card:hover::before{opacity:.6;}
+.card-glyph{width:48px;height:48px;margin:0 auto 1.5rem;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;background:linear-gradient(135deg,rgba(92,0,212,.12),rgba(56,189,248,.08));border:1px solid rgba(92,0,212,.15);}
+.card-title{font-family:'Playfair Display',Georgia,serif;font-size:19px;font-weight:700;margin-bottom:.75rem;}
+.card-desc{font-size:14px;color:#5c6370;line-height:1.7;}
 
-/* Divider */
-.divider{width:48px;height:1px;background:linear-gradient(90deg,transparent,#30363d,transparent);margin:0 auto;}
-
-/* Form */
-.form-section{background:#111318;border:1px solid #1e2028;border-radius:14px;padding:2.5rem;max-width:560px;margin:0 auto;}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+/* ── Form ── */
+.form-wrap{max-width:520px;margin:0 auto;background:#0d0d10;border:1px solid #1a1a20;border-radius:16px;padding:2.75rem 2.5rem;}
+@media(max-width:500px){.form-wrap{padding:2rem 1.25rem;}}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
 @media(max-width:500px){.form-grid{grid-template-columns:1fr;}}
 .form-full{grid-column:1/-1;}
-label{display:block;font-size:11px;color:#6e7681;margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em;font-weight:500;}
-input,textarea{width:100%;background:#0a0a0a;border:1px solid #1e2028;border-radius:8px;padding:11px 14px;color:#e6edf3;font-size:14px;font-family:inherit;outline:none;transition:all .25s;}
-input:focus,textarea:focus{border-color:#5C00D4;box-shadow:0 0 0 3px rgba(92,0,212,.15);}
+label{display:block;font-size:11px;color:#4e5561;margin-bottom:6px;text-transform:uppercase;letter-spacing:.1em;font-weight:500;}
+input,textarea{width:100%;background:transparent;border:1px solid #1e2028;border-radius:10px;padding:12px 16px;color:#e6edf3;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:all .3s;}
+input:focus,textarea:focus{border-color:#5C00D4;box-shadow:0 0 0 3px rgba(92,0,212,.1);}
 textarea{resize:vertical;min-height:90px;}
-.form-submit{grid-column:1/-1;text-align:center;margin-top:.75rem;}
-.form-btn{background:linear-gradient(135deg,#5C00D4,#7B2FFF);color:#fff;border:none;padding:12px 36px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:all .3s;box-shadow:0 4px 16px rgba(92,0,212,.2);}
-.form-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(92,0,212,.35);}
+.form-submit{grid-column:1/-1;text-align:center;margin-top:.5rem;}
+.form-btn{background:linear-gradient(135deg,#5C00D4,#7B2FFF);color:#fff;border:none;padding:13px 40px;border-radius:50px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;transition:all .35s;box-shadow:0 4px 20px rgba(92,0,212,.25);}
+.form-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(92,0,212,.4);}
 
-/* Footer */
-.footer{text-align:center;padding:3rem 2rem;font-size:12px;color:#3d454e;border-top:1px solid #161b22;}
-.footer a{color:#6e7681;margin:0 10px;transition:color .2s;}
-.footer a:hover{color:#5C00D4;}
+/* ── Footer ── */
+.footer{text-align:center;padding:3rem 2rem;font-size:12px;color:#2d3139;border-top:1px solid #141418;}
+.footer-links{margin-top:10px;}
+.footer-links a{color:#4e5561;margin:0 12px;font-size:12px;transition:color .25s;}
+.footer-links a:hover{color:#5C00D4;}
+
+/* ── Separator ── */
+.sep{height:1px;max-width:80px;margin:0 auto;background:linear-gradient(90deg,transparent,#2d2d35,transparent);}
 </style>
 </head>
 <body>
 
-<div class="hero">
-  <div class="logo fade-up">DataPace</div>
-  <div class="baseline fade-up-d1">L'intelligence data du running mondial</div>
-  <a href="datapace_dashboard.html" class="cta fade-up-d2">Acceder au dashboard &rarr;</a>
-</div>
+<!-- ════ HERO ════ -->
+<section class="hero">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <h1 class="hero-title f0">DataPace</h1>
+  <p class="hero-sub f1">L'intelligence data du running mondial</p>
+  <a href="datapace_dashboard.html" class="hero-cta f2">
+    Acceder au dashboard
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 8h9M8.5 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+  <div class="scroll-hint f3"><div class="scroll-line"></div>scroll</div>
+</section>
 
-<div class="divider"></div>
-
-<div class="section">
-  <div class="section-title fade-in">Pour <em>qui</em> ?</div>
-  <div class="cards">
-    <div class="card fade-up-d1">
-      <div class="card-icon">&#x1F3C3;</div>
-      <div class="card-title">Organisateurs d'evenements</div>
-      <div class="card-desc">Benchmarkez vos finishers, temps moyens et tendances par rapport aux evenements comparables dans le monde.</div>
-    </div>
-    <div class="card fade-up-d2">
-      <div class="card-icon">&#x1F4A1;</div>
-      <div class="card-title">Marques running</div>
-      <div class="card-desc">Identifiez les evenements en croissance, analysez le paysage sponsoring et ciblez vos investissements.</div>
-    </div>
-    <div class="card fade-up-d3">
-      <div class="card-icon">&#x1F4F0;</div>
-      <div class="card-title">Medias specialises</div>
-      <div class="card-desc">Accedez a des donnees fiables et sourcees pour vos articles, infographies et analyses du marche running.</div>
+<!-- ════ POUR QUI ════ -->
+<section class="section-bg">
+  <div class="section">
+    <h2 class="section-title">Pour <em>qui</em> ?</h2>
+    <p class="section-desc">Des donnees actionnables pour tous les acteurs de l'ecosysteme running.</p>
+    <div class="cards">
+      <div class="card">
+        <div class="card-glyph">&#x1F3C3;</div>
+        <div class="card-title">Organisateurs</div>
+        <div class="card-desc">Benchmarkez vos finishers, temps moyens et tendances face aux evenements comparables dans le monde.</div>
+      </div>
+      <div class="card">
+        <div class="card-glyph">&#x1F4A1;</div>
+        <div class="card-title">Marques</div>
+        <div class="card-desc">Identifiez les evenements en croissance, analysez le paysage sponsoring et ciblez vos investissements.</div>
+      </div>
+      <div class="card">
+        <div class="card-glyph">&#x1F4F0;</div>
+        <div class="card-title">Medias</div>
+        <div class="card-desc">Accedez a des donnees fiables et sourcees pour vos articles, infographies et analyses de marche.</div>
+      </div>
     </div>
   </div>
-</div>
+</section>
 
-<div class="divider"></div>
-
-<div class="section">
-  <div class="section-title fade-in">Demander un <em>acces</em></div>
-  <form class="form-section fade-up-d1" action="https://formsubmit.co/mathis.brun@orange.fr" method="POST">
+<!-- ════ CONTACT ════ -->
+<section class="section">
+  <h2 class="section-title">Demander un <em>acces</em></h2>
+  <p class="section-desc">Vous souhaitez explorer les donnees ou discuter d'un cas d'usage ? Ecrivez-nous.</p>
+  <form class="form-wrap" action="https://formsubmit.co/mathis.brun@orange.fr" method="POST">
     <input type="hidden" name="_subject" value="DataPace - Demande d'acces">
     <input type="hidden" name="_captcha" value="false">
     <input type="hidden" name="_next" value="https://mathbrn.github.io/datapace/">
@@ -118,14 +153,16 @@ textarea{resize:vertical;min-height:90px;}
       <div class="form-submit"><button type="submit" class="form-btn">Envoyer</button></div>
     </div>
   </form>
-</div>
+</section>
 
-<div class="footer">
+<!-- ════ FOOTER ════ -->
+<footer class="footer">
   Donnees issues des sites officiels des evenements &middot; DataPace &copy; 2026
-  <br><br>
-  <a href="mailto:mathis.brun@orange.fr">mathis.brun@orange.fr</a>
-  <a href="https://www.linkedin.com/in/mathis-brun/" target="_blank">LinkedIn</a>
-</div>
+  <div class="footer-links">
+    <a href="mailto:mathis.brun@orange.fr">mathis.brun@orange.fr</a>
+    <a href="https://www.linkedin.com/in/mathis-brun/" target="_blank">LinkedIn</a>
+  </div>
+</footer>
 
 </body>
 </html>
