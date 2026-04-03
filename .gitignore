@@ -1,0 +1,21 @@
+# Sensitive files - API keys and credentials
+CLAUDE.md
+.env
+.env.*
+!.env.example
+
+# Database
+datapace.db
+*.db
+
+# Temp / system files
+.fuse_hidden*
+__pycache__/
+*.pyc
+~$*
+.~lock*
+*.tmp
+
+# OS files
+Thumbs.db
+.DS_Store
