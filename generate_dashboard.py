@@ -997,8 +997,8 @@ function updateTemps(){
       }
     }
     // Tooltip data
-    var tipParts=d.race+'\n'+d.avg+' (temps moyen)\n'+fmtFull(d.finishers)+' finishers';
-    if(prevAvg)tipParts+='\nvs '+(yr-1)+' : '+prevAvg;
+    var tipParts=d.race+'\\n'+d.avg+' (temps moyen)\\n'+fmtFull(d.finishers)+' finishers';
+    if(prevAvg)tipParts+='\\nvs '+(yr-1)+' : '+prevAvg;
     var safeRace=d.race.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
     barsHtml+='<div class="time-bar-row" title="'+tipParts.replace(/"/g,'&quot;')+'" data-race="'+safeRace+'" onclick="tempsNav(this.dataset.race)" style="cursor:pointer"><div class="time-bar-label">'+d.race+'</div><div class="time-bar-track"><div class="time-bar-fill" style="width:'+(m?pct:0)+'%;background:'+barCol+'cc"></div></div><div class="time-bar-val">'+(d.avg||'-')+deltaHtml+'</div></div>';
   });
