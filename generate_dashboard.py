@@ -377,8 +377,8 @@ JS_LOGIC = '''function isWmm(r){var l=r.toLowerCase();return WMM_KEYWORDS.some(f
 function isLight(){return document.documentElement.hasAttribute('data-theme');}
 var LIGHT_MAP={'#38BDF8':'#0B7BC0','#FCDB00':'#A88F00','#5C00D4':'#4800A8','#9B6FFF':'#6B3FCC','#FF8A50':'#CC5A20','#5CDFA0':'#2BA368','#F472B6':'#C04080','#FF4A6B':'#CC2040','#22C55E':'#1A8A42','#2DBF7E':'#1F8A5A','#FF6B9D':'#CC3870','#8B5CF6':'#6D3FCC','#7C3AED':'#5C28BB'};
 function lc(c){return isLight()?(LIGHT_MAP[c]||c):c;}
-function col(r){return lc(isWmm(r)?'#38BDF8':'#5C00D4');}
-function colDist(r){return lc(isWmm(r.r)?'#38BDF8':r.d==='10KM'?'#5CDFA0':r.d==='SEMI'?'#FF8A50':r.d==='AUTRE'?'#F472B6':'#9B6FFF');}
+function col(r){return lc('#5C00D4');}
+function colDist(r){return lc(r.d==='10KM'?'#5CDFA0':r.d==='SEMI'?'#FF8A50':r.d==='AUTRE'?'#F472B6':'#5C00D4');}
 var CIRC_COLORS={WMM:'#38BDF8',EMC:'#8B5CF6',L5G:'#7C3AED'};
 var CIRC_DIST_SEC={MARATHON:'#8B5CF6',SEMI:'#FFB088','10KM':'#88EEBB',AUTRE:'#FF99CC'};
 function circColor(code,dist){if(code==='RNR')return lc(CIRC_DIST_SEC[dist]||'#8B5CF6');return lc(CIRC_COLORS[code]||'#8B5CF6');}
@@ -971,7 +971,7 @@ function updateTemps(){
   var barsHtml='';
   displayed.forEach(function(d){
     var m=toMin(d.avg);var pct=m?((m-minM)/(maxM-minM+0.001)*75+5).toFixed(1):'0';
-    var barCol=isWmm(d.race)?'#38BDF8':dist==='SEMI'?'#FF8A50':'#9B6FFF';
+    var barCol=dist==='SEMI'?lc('#FF8A50'):lc('#5C00D4');
     barsHtml+='<div class="time-bar-row"><div class="time-bar-label">'+d.race+'</div><div class="time-bar-track"><div class="time-bar-fill" style="width:'+(m?pct:0)+'%;background:'+barCol+'88"></div></div><div class="time-bar-val">'+(d.avg||'-')+'</div></div>';
   });
   document.getElementById('time-bars').innerHTML=barsHtml;
@@ -2124,9 +2124,8 @@ HTML_BODY = """
   <div class="metrics" id="metrics-temps"></div>
   <div class="section-title">Temps moyen par course</div>
   <div class="legend">
-    <span class="leg-item"><span class="leg-dot" style="background:#F472B6"></span>Autre</span>
-
-    <span class="leg-item"><span class="leg-dot" style="background:#38BDF8"></span>World Marathon Majors</span>
+    <span class="leg-item"><span class="leg-dot" style="background:#5C00D4"></span>Marathon</span>
+    <span class="leg-item"><span class="leg-dot" style="background:#FF8A50"></span>Semi-marathon</span>
   </div>
   <div class="time-bar-wrap" id="time-bars"></div>
 </div>
