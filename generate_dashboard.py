@@ -2474,6 +2474,9 @@ def generate_html(finishers, biggest, md, sd, tdb, winners):
 <meta property="og:title" content="DataPace — Dashboard Running Mondial">
 <meta property="og:description" content="186+ evenements running mondiaux : finishers, temps moyens, chronos vainqueurs, sponsoring.">
 <meta property="og:type" content="website">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" href="assets/Logo_DataPace_primary.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2482,7 +2485,7 @@ def generate_html(finishers, biggest, md, sd, tdb, winners):
 </head>
 <body>
 {body}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous"></script>
 <script>
 {js_data}
 {JS_LOGIC}
