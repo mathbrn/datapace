@@ -594,7 +594,7 @@ function fmtHMMin(mins){return fmtHM(mins)+'min';}
 function csVar(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function mkGRID(){return isLight()?'rgba(0,0,0,0.05)':'rgba(255,255,255,0.03)';}
 function mkTICK(){return{color:isLight()?'#888':'#555',font:{size:10}};}
-function mkTT(){var lt=isLight();return{backgroundColor:lt?'#ffffff':'#161b22',borderColor:lt?'rgba(0,0,0,0.1)':'rgba(255,255,255,0.1)',borderWidth:1,titleColor:lt?'#444':'#8a8a9a',bodyColor:lt?'#0a0a0a':'#f0f0f5',padding:10};}
+function mkTT(cb){var lt=isLight();var o={backgroundColor:lt?'#ffffff':'#1a1a1a',borderColor:lt?'rgba(0,0,0,0.08)':'rgba(255,255,255,0.08)',borderWidth:1,titleColor:'#888',bodyColor:lt?'#0a0a0a':'#f0f0f0',padding:12,cornerRadius:6,displayColors:true,boxWidth:8,boxHeight:8,boxPadding:4,titleFont:{size:10,family:'Inter',weight:'400'},bodyFont:{size:13,family:'Inter',weight:'500'}};if(cb)o.callbacks=cb;return o;}
 function mkBorder(){return'transparent';}
 var GRID=mkGRID();
 var TICK=mkTICK();TICK.maxRotation=0;TICK.minRotation=0;TICK.autoSkip=true;TICK.maxTicksLimit=12;
@@ -924,7 +924,7 @@ function ovSelect(idx){
     ovChartF=new Chart(fc,{type:'bar',
       data:{labels:positiveHistory.map(function(e){return e.yr;}),datasets:[{data:positiveHistory.map(function(e){return e.v;}),backgroundColor:ac,hoverBackgroundColor:ac+'CC',borderRadius:3,borderSkipped:false}]},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{backgroundColor:mkTT().backgroundColor,borderColor:mkTT().borderColor,borderWidth:1,titleColor:mkTT().titleColor,bodyColor:mkTT().bodyColor,padding:10,callbacks:{label:function(ctx){return' '+fmtFull(ctx.parsed.y)+' finishers';}}}},
+        plugins:{legend:{display:false},tooltip:mkTT({label:function(ctx){return' '+fmtFull(ctx.parsed.y)+' finishers';}})},
         scales:{x:{grid:{display:false},ticks:{color:'#555',font:{size:10},maxRotation:0,minRotation:0,autoSkip:true,maxTicksLimit:12},border:{display:false}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555',font:{size:10},callback:function(v){return fmt(v);}},border:{display:false}}}
       }
     });
@@ -935,7 +935,7 @@ function ovSelect(idx){
     ovChartT=new Chart(tc,{type:'line',
       data:{labels:th.map(function(e){return e.yr;}),datasets:[{data:th.map(function(e){return e.min;}),borderColor:'#888',backgroundColor:'rgba(136,136,136,0.06)',tension:0.3,pointRadius:4,pointBackgroundColor:'#888',borderWidth:2,fill:true}]},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{backgroundColor:mkTT().backgroundColor,borderColor:mkTT().borderColor,borderWidth:1,titleColor:mkTT().titleColor,bodyColor:mkTT().bodyColor,padding:10,callbacks:{label:function(ctx){return' '+fmtHMMin(ctx.parsed.y);}}}},
+        plugins:{legend:{display:false},tooltip:mkTT({label:function(ctx){return' '+fmtHMMin(ctx.parsed.y);}})},
         scales:{x:{grid:{display:false},ticks:{color:'#555',font:{size:10},maxRotation:0,minRotation:0,autoSkip:true,maxTicksLimit:12},border:{display:false}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555',font:{size:10},callback:function(v){return fmtHM(v);}},border:{display:false}}}
       }
     });
@@ -946,7 +946,7 @@ function ovSelect(idx){
     ovChartM=new Chart(mcv,{type:'line',
       data:{labels:wh.men.map(function(e){return e.yr;}),datasets:[{data:wh.men.map(function(e){return e.sec/60;}),borderColor:ac,backgroundColor:ac+'14',tension:0.3,pointRadius:4,pointBackgroundColor:ac,borderWidth:2,fill:true}]},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{backgroundColor:mkTT().backgroundColor,borderColor:mkTT().borderColor,borderWidth:1,titleColor:mkTT().titleColor,bodyColor:mkTT().bodyColor,padding:10,callbacks:{label:function(ctx){var i=ctx.dataIndex;return' '+wh.men[i].time;}}}},
+        plugins:{legend:{display:false},tooltip:mkTT({label:function(ctx){var i=ctx.dataIndex;return' '+wh.men[i].time;}})},
         scales:{x:{grid:{display:false},ticks:{color:'#555',font:{size:10},maxRotation:0,minRotation:0,autoSkip:true,maxTicksLimit:12},border:{display:false}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555',font:{size:10},callback:function(v){return fmtHM(v);}},border:{display:false}}}
       }
     });
@@ -957,7 +957,7 @@ function ovSelect(idx){
     ovChartW=new Chart(wcv,{type:'line',
       data:{labels:wh.women.map(function(e){return e.yr;}),datasets:[{data:wh.women.map(function(e){return e.sec/60;}),borderColor:acLight,backgroundColor:acLight+'14',tension:0.3,pointRadius:4,pointBackgroundColor:acLight,borderWidth:2,fill:true}]},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{backgroundColor:mkTT().backgroundColor,borderColor:mkTT().borderColor,borderWidth:1,titleColor:mkTT().titleColor,bodyColor:mkTT().bodyColor,padding:10,callbacks:{label:function(ctx){var i=ctx.dataIndex;return' '+wh.women[i].time;}}}},
+        plugins:{legend:{display:false},tooltip:mkTT({label:function(ctx){var i=ctx.dataIndex;return' '+wh.women[i].time;}})},
         scales:{x:{grid:{display:false},ticks:{color:'#555',font:{size:10},maxRotation:0,minRotation:0,autoSkip:true,maxTicksLimit:12},border:{display:false}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555',font:{size:10},callback:function(v){return fmtHM(v);}},border:{display:false}}}
       }
     });
@@ -1055,7 +1055,7 @@ function updateTrends(){
   }};
   var trendCfg={type:'line',data:{labels:allYears.map(String),datasets:datasets},plugins:[endLabelPlugin],options:{responsive:true,maintainAspectRatio:false,layout:{padding:{right:70}},interaction:{mode:'nearest',intersect:false},onClick:function(evt,items){
     if(items.length){var di=items[0].datasetIndex;var idx=datasets[di]._rawIdx;if(idx>=0)biggestClick(idx);}
-  },plugins:{legend:{display:false},tooltip:{backgroundColor:mkTT().backgroundColor,borderColor:mkTT().borderColor,borderWidth:1,titleColor:mkTT().titleColor,bodyColor:mkTT().bodyColor,padding:12,callbacks:{title:function(items){return items.length?items[0].dataset.label:'';},label:function(ctx){
+  },plugins:{legend:{display:false},tooltip:mkTT({title:function(items){return items.length?items[0].dataset.label:'';},label:function(ctx){
     var v=ctx.parsed.y;var yr=parseInt(ctx.label);
     var line=' '+fmtFull(v)+' finishers';
     var di=ctx.datasetIndex;var ds=ctx.chart.data.datasets[di];
@@ -1067,7 +1067,7 @@ function updateTrends(){
       line+='  ('+(delta>=0?'+':'')+delta+'% vs '+prevYr+')';
     }
     return line;
-  }}}},scales:{x:{grid:{color:mkGRID()},ticks:TICK,border:{color:mkBorder()}},y:{beginAtZero:true,grid:{color:mkGRID()},ticks:{color:mkTICK().color,font:{size:11},callback:function(v){return fmt(v);}},border:{color:mkBorder()}}}}};
+  }})},scales:{x:{grid:{color:mkGRID()},ticks:TICK,border:{color:mkBorder()}},y:{beginAtZero:true,grid:{color:mkGRID()},ticks:{color:mkTICK().color,font:{size:11},callback:function(v){return fmt(v);}},border:{color:mkBorder()}}}}};
   cT=new Chart(document.getElementById('chart-trends'),trendCfg);
 }
 function trendLegClick(idx){biggestClick(idx);}
@@ -1760,7 +1760,7 @@ function renderCompare(){
       ]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:true,labels:{color:mkTICK().color,font:{size:11},usePointStyle:true,pointStyle:'line',boxWidth:20}},
-          tooltip:{backgroundColor:mkTT().backgroundColor,borderColor:mkTT().borderColor,borderWidth:1,titleColor:mkTT().titleColor,bodyColor:mkTT().bodyColor,padding:10,callbacks:{label:function(ctx){return' '+ctx.dataset.label+': '+fmtFull(ctx.parsed.y);}}}},
+          tooltip:mkTT({label:function(ctx){return' '+ctx.dataset.label+': '+fmtFull(ctx.parsed.y);}})},
         scales:{x:{grid:{display:false},ticks:{color:'#555',font:{size:10},maxRotation:0,minRotation:0,autoSkip:true,maxTicksLimit:12},border:{display:false}},
           y:{beginAtZero:true,grid:{color:mkGRID()},ticks:{color:'#555',font:{size:10},callback:function(v){return fmt(v);}},border:{display:false}}}
       }
@@ -1918,7 +1918,7 @@ function updateWinners(){
   document.getElementById('win-legend').innerHTML=legH;
   if(cW){cW.destroy();cW=null;}
   var ctx=document.getElementById('chart-winners').getContext('2d');
-  cW=new Chart(ctx,{type:'line',data:{labels:allYears.map(String),datasets:datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'nearest',intersect:true},plugins:{legend:{display:false},tooltip:{backgroundColor:mkTT().backgroundColor,borderColor:mkTT().borderColor,borderWidth:1,titleColor:mkTT().titleColor,bodyColor:mkTT().bodyColor,padding:10,callbacks:{title:function(items){return items.length?items[0].dataset.label:'';},label:function(ctx){var v=ctx.parsed.y;if(v==null)return null;var h=Math.floor(v/60),m=Math.floor(v%60),s=Math.round((v*60)%60);return' '+(h?h+':':'')+String(m).padStart(h?2:1,'0')+':'+String(s).padStart(2,'0');}}}},scales:{x:{ticks:{color:mkTICK().color,font:{size:11}},grid:{color:mkGRID()}},y:{reverse:true,ticks:{color:mkTICK().color,font:{size:11},callback:function(v){var h=Math.floor(v/60),m=Math.round(v%60);return(h?h+'h':'')+(h?String(m).padStart(2,'0'):m)+'min';}},grid:{color:mkGRID()}}}}});
+  cW=new Chart(ctx,{type:'line',data:{labels:allYears.map(String),datasets:datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'nearest',intersect:true},plugins:{legend:{display:false},tooltip:mkTT({title:function(items){return items.length?items[0].dataset.label:'';},label:function(ctx){var v=ctx.parsed.y;if(v==null)return null;var h=Math.floor(v/60),m=Math.floor(v%60),s=Math.round((v*60)%60);return' '+(h?h+':':'')+String(m).padStart(h?2:1,'0')+':'+String(s).padStart(2,'0');}})},scales:{x:{ticks:{color:mkTICK().color,font:{size:11}},grid:{color:mkGRID()}},y:{reverse:true,ticks:{color:mkTICK().color,font:{size:11},callback:function(v){var h=Math.floor(v/60),m=Math.round(v%60);return(h?h+'h':'')+(h?String(m).padStart(2,'0'):m)+'min';}},grid:{color:mkGRID()}}}}});
   // Populate year filter
   var yrSel=document.getElementById('win-year');
   var prevYr=yrSel.value;
