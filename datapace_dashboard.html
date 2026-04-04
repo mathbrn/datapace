@@ -90,7 +90,7 @@ tr:hover td{background:var(--bg2);color:var(--text);}
 .time-bar-label{font-size:11px;color:var(--text2);width:280px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .time-bar-track{flex:1;background:var(--bg2);border-radius:4px;height:18px;}
 .time-bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:10px;color:#fff;font-weight:500;white-space:nowrap;}
-.time-bar-val{font-size:11px;color:var(--text3);width:56px;flex-shrink:0;text-align:right;}
+.time-bar-val{font-size:11px;color:var(--text3);min-width:56px;flex-shrink:0;text-align:right;white-space:nowrap;}
 .ov-search-wrap{position:relative;margin-bottom:1rem;}
 .ov-search-wrap input{width:100%;font-size:13px;padding:8px 12px 8px 32px;border:.5px solid var(--border2);border-radius:4px;background:var(--bg2);color:var(--text);outline:none;}
 .ov-search-wrap input:focus{border-color:var(--purple);}
@@ -411,10 +411,7 @@ tr:hover td{background:var(--bg2);color:var(--text);}
   </div>
   <div class="metrics" id="metrics-temps"></div>
   <div class="section-title">Temps moyen par course</div>
-  <div class="legend">
-    <span class="leg-item"><span class="leg-dot" style="background:#5C00D4"></span>Marathon</span>
-    <span class="leg-item"><span class="leg-dot" style="background:#FF8A50"></span>Semi-marathon</span>
-  </div>
+  <div style="font-size:10px;color:var(--text3);margin-bottom:12px">Barre la plus longue = course la plus rapide</div>
   <div class="time-bar-wrap" id="time-bars"></div>
 </div>
 <div id="panel-winners" class="panel">
@@ -1142,6 +1139,17 @@ function updateTempsYears(){
 }
 
 function raceRegion(name){var m=RAW.find(function(r){return r.r===name;});return m?m.rg:'Autre';}
+function tempsFindRaw(name){return RAW.find(function(r){return r.r===name||r.r.toLowerCase()===name.toLowerCase();});}
+function tempsNav(name){var r=tempsFindRaw(name);if(!r)return;var idx=RAW.indexOf(r);if(idx>=0)biggestClick(idx);}
+function tempsPrevAvg(race,dist,yr){
+  var prevYr=yr-1;
+  var srcObj=dist==='SEMI'?TEMPS_SEMI:TEMPS_MARATHON;
+  var prev=srcObj[String(prevYr)];
+  if(!prev)return null;
+  var m=prev.find(function(d){return d.race===race;});
+  return m?m.avg:null;
+}
+function minToTime(m){var h=Math.floor(m/60);var mn=Math.floor(m%60);var s=Math.round((m-Math.floor(m))*60);return h+'h'+String(mn).padStart(2,'0')+'m'+String(s).padStart(2,'0');}
 function updateTemps(){
   var dist=document.getElementById('dist-temps').value;
   var yr=parseInt(document.getElementById('year-temps').value);
@@ -1154,25 +1162,45 @@ function updateTemps(){
   else{data.sort(function(a,b){return b.finishers-a.finishers;});}
   var withAvg=data.filter(function(d){return toMin(d.avg);});
   var displayed=data.slice(0,topn);
-  var displayedWithAvg=displayed.filter(function(d){return toMin(d.avg);});
   var fastest=withAvg.length?withAvg.reduce(function(a,b){return toMin(a.avg)<toMin(b.avg)?a:b;}):null;
   var slowest=withAvg.length?withAvg.reduce(function(a,b){return toMin(a.avg)>toMin(b.avg)?a:b;}):null;
   var avgAll=withAvg.length?withAvg.reduce(function(s,d){return s+toMin(d.avg);},0)/withAvg.length:0;
-  var avgH=Math.floor(avgAll/60),avgM=Math.floor(avgAll%60),avgS=Math.round((avgAll-Math.floor(avgAll))*60);
   var distLabel=dist==='SEMI'?'Semi-marathon':'Marathon';
-  var yrLabel=dist==='SEMI'?2025:yr;
+  var barCol=dist==='SEMI'?lc('#FF8A50'):lc('#5C00D4');
   document.getElementById('metrics-temps').innerHTML=
-    '<div class="metric"><div class="metric-label">Courses</div><div class="metric-value">'+src.length+'</div><div class="metric-sub">'+distLabel+' '+yrLabel+'</div></div>'
-    +'<div class="metric"><div class="metric-label">Temps moyen</div><div class="metric-value" style="font-size:16px">'+avgH+'h'+String(avgM).padStart(2,'0')+'m'+String(avgS).padStart(2,'0')+'</div></div>'
-    +'<div class="metric"><div class="metric-label">Plus rapide</div><div class="metric-value" style="font-size:14px;color:#FCDB00">'+(fastest?fastest.avg:'-')+'</div></div>'
-    +'<div class="metric"><div class="metric-label">Plus lent</div><div class="metric-value" style="font-size:14px">'+(slowest?slowest.avg:'-')+'</div></div>';
+    '<div class="metric" style="grid-column:span 2"><div class="metric-label">Temps moyen global</div><div class="metric-value" style="font-size:28px;color:'+barCol+'">'+minToTime(avgAll)+'</div><div class="metric-sub">'+distLabel+' '+yr+' · '+src.length+' courses</div></div>'
+    +'<div class="metric"><div class="metric-label" style="color:'+barCol+'">Plus rapide</div><div class="metric-value" style="font-size:18px;color:'+barCol+'">'+(fastest?fastest.avg:'-')+'</div><div class="metric-sub" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(fastest?fastest.race:'')+'</div></div>'
+    +'<div class="metric"><div class="metric-label">Plus lent</div><div class="metric-value" style="font-size:16px;color:var(--text3)">'+(slowest?slowest.avg:'-')+'</div><div class="metric-sub" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text3)">'+(slowest?slowest.race:'')+'</div></div>';
+  // Inverted bar logic: longest bar = fastest time
   var minM=withAvg.length?Math.min.apply(null,withAvg.map(function(d){return toMin(d.avg);})):0;
   var maxM=withAvg.length?Math.max.apply(null,withAvg.map(function(d){return toMin(d.avg);})):1;
   var barsHtml='';
   displayed.forEach(function(d){
-    var m=toMin(d.avg);var pct=m?((m-minM)/(maxM-minM+0.001)*75+5).toFixed(1):'0';
-    var barCol=dist==='SEMI'?lc('#FF8A50'):lc('#5C00D4');
-    barsHtml+='<div class="time-bar-row"><div class="time-bar-label">'+d.race+'</div><div class="time-bar-track"><div class="time-bar-fill" style="width:'+(m?pct:0)+'%;background:'+barCol+'88"></div></div><div class="time-bar-val">'+(d.avg||'-')+'</div></div>';
+    var m=toMin(d.avg);
+    // Invert: fastest gets longest bar
+    var pct=m?((maxM-m)/(maxM-minM+0.001)*75+10).toFixed(1):'0';
+    // Delta vs previous year
+    var prevAvg=tempsPrevAvg(d.race,dist,yr);
+    var deltaHtml='';
+    if(prevAvg){
+      var pm=toMin(prevAvg);
+      if(pm){
+        var diffMin=m-pm;
+        var absDiff=Math.abs(diffMin);
+        var diffH=Math.floor(absDiff/60);var diffMn=Math.floor(absDiff%60);var diffS=Math.round((absDiff-Math.floor(absDiff))*60);
+        var diffStr=diffH>0?diffH+'h'+String(diffMn).padStart(2,'0')+'m':(diffMn>0?diffMn+'m'+String(diffS).padStart(2,'0')+'s':diffS+'s');
+        if(diffMin>0.08){deltaHtml='<span style="color:'+lc('#FF4A6B')+';font-size:9px;margin-left:6px">▲ +'+diffStr+'</span>';}
+        else if(diffMin<-0.08){deltaHtml='<span style="color:'+lc('#22C55E')+';font-size:9px;margin-left:6px">▼ -'+diffStr+'</span>';}
+      }
+    }
+    // Tooltip data
+    var tipParts=d.race+'
+'+d.avg+' (temps moyen)
+'+fmtFull(d.finishers)+' finishers';
+    if(prevAvg)tipParts+='
+vs '+(yr-1)+' : '+prevAvg;
+    var safeRace=d.race.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    barsHtml+='<div class="time-bar-row" title="'+tipParts.replace(/"/g,'&quot;')+'" data-race="'+safeRace+'" onclick="tempsNav(this.dataset.race)" style="cursor:pointer"><div class="time-bar-label">'+d.race+'</div><div class="time-bar-track"><div class="time-bar-fill" style="width:'+(m?pct:0)+'%;background:'+barCol+'cc"></div></div><div class="time-bar-val">'+(d.avg||'-')+deltaHtml+'</div></div>';
   });
   document.getElementById('time-bars').innerHTML=barsHtml;
 }
