@@ -18,7 +18,7 @@
 ::-webkit-scrollbar-thumb{background:#ffffff18;border-radius:999px;}
 ::-webkit-scrollbar-thumb:hover{background:#5C00D4;}
 ::-webkit-scrollbar-corner{background:transparent;}
-:root{--bg:#080808;--bg2:#0e0e11;--bg3:#141418;--bg4:#1a1a20;--border:#1a1a20;--border2:#252530;--text:#f0f0f5;--text2:#8a8a9a;--text3:#55555f;--purple:#5C00D4;--purple2:#7B2FFF;--yellow:#FCDB00;--accent:#5C00D4;}
+:root{--bg:#13131a;--bg2:#1a1a24;--bg3:#1f1f2e;--bg4:#25253a;--border:#25253a;--border2:#303048;--text:#f0f0f5;--text2:#8a8a9a;--text3:#55555f;--purple:#5C00D4;--purple2:#7B2FFF;--yellow:#FCDB00;--accent:#5C00D4;}
 [data-theme="light"]{--bg:#f8f8f8;--bg2:#ffffff;--bg3:#f0f0f0;--bg4:#e8e8e8;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.12);--text:#0a0a0a;--text2:#444;--text3:#888;--purple:#5C00D4;--purple2:#4800A8;--yellow:#A88F00;--accent:#5C00D4;}
 [data-theme="light"]{scrollbar-color:rgba(0,0,0,0.15) transparent;}
 [data-theme="light"] ::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.15);}
@@ -594,7 +594,7 @@ function fmtHMMin(mins){return fmtHM(mins)+'min';}
 function csVar(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function mkGRID(){return isLight()?'rgba(0,0,0,0.05)':'rgba(255,255,255,0.03)';}
 function mkTICK(){return{color:isLight()?'#888':'#555',font:{size:10}};}
-function mkTT(cb){var lt=isLight();var o={backgroundColor:lt?'#ffffff':'#1a1a1a',borderColor:lt?'rgba(0,0,0,0.08)':'rgba(255,255,255,0.08)',borderWidth:1,titleColor:'#888',bodyColor:lt?'#0a0a0a':'#f0f0f0',padding:12,cornerRadius:6,displayColors:true,boxWidth:8,boxHeight:8,boxPadding:4,titleFont:{size:10,family:'Inter',weight:'400'},bodyFont:{size:13,family:'Inter',weight:'500'}};if(cb)o.callbacks=cb;return o;}
+function mkTT(cb){var lt=isLight();var o={backgroundColor:lt?'#ffffff':'#1a1a2e',borderColor:lt?'rgba(0,0,0,0.08)':'rgba(255,255,255,0.08)',borderWidth:1,titleColor:'#888',bodyColor:lt?'#0a0a0a':'#f0f0f0',padding:12,cornerRadius:6,displayColors:true,boxWidth:8,boxHeight:8,boxPadding:4,titleFont:{size:10,family:'Inter',weight:'400'},bodyFont:{size:13,family:'Inter',weight:'500'}};if(cb)o.callbacks=cb;return o;}
 function mkBorder(){return'transparent';}
 var GRID=mkGRID();
 var TICK=mkTICK();TICK.maxRotation=0;TICK.minRotation=0;TICK.autoSkip=true;TICK.maxTicksLimit=12;
