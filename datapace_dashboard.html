@@ -266,14 +266,11 @@ tr:hover td{background:var(--bg2);color:var(--text);}
 </div>
 <div id="panel-insights" class="panel">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1.25rem;">
-    <div id="ins-period-lbl"></div>
     <div class="controls" style="margin-bottom:0;">
       <div class="ctrl-group">
-        <span class="ctrl-label">De</span>
+        <span class="ctrl-label">P&eacute;riode</span>
         <select id="ins-yr-from" onchange="updateInsights()"></select>
-      </div>
-      <div class="ctrl-group">
-        <span class="ctrl-label">A</span>
+        <span style="color:var(--text3);font-size:11px;margin:0 4px">&rarr;</span>
         <select id="ins-yr-to" onchange="updateInsights()"></select>
       </div>
       <div class="ctrl-group">
@@ -284,18 +281,22 @@ tr:hover td{background:var(--bg2);color:var(--text);}
       </div>
     </div>
   </div>
+  <div style="margin-bottom:1.25rem;">
+    <div class="section-title" id="ins-global-title" style="font-size:10px;letter-spacing:.08em;margin-bottom:6px">TOTAL FINISHERS TRACK&Eacute;S</div>
+    <div style="height:150px;position:relative"><canvas id="ins-global-chart"></canvas></div>
+  </div>
   <div class="ins-grid">
     <div class="ins-card">
-      <div class="ins-card-title">&#x1F4C8; Top 5 &mdash; Plus forte croissance</div>
+      <div class="ins-card-title">TOP 5 &mdash; Plus forte croissance</div>
       <div id="ins-growth"></div>
     </div>
     <div class="ins-card">
-      <div class="ins-card-title">&#x1F4C9; Top 5 &mdash; Plus fort declin</div>
+      <div class="ins-card-title">TOP 5 &mdash; Plus fort d&eacute;clin</div>
       <div id="ins-decline"></div>
     </div>
   </div>
   <div style="margin-top:1.5rem;">
-    <div class="ins-card-title" style="margin-bottom:1rem;">&#x1F4CA; Chiffres cles</div>
+    <div class="ins-card-title" style="margin-bottom:1rem;font-size:10px;letter-spacing:.08em;text-transform:uppercase">CHIFFRES CL&Eacute;S</div>
     <div class="metrics" id="ins-metrics"></div>
   </div>
 </div>
@@ -763,6 +764,7 @@ function initInsightsYears(){
   selFrom.value=allYrs.indexOf(2023)>=0?2023:allYrs[0];
   selTo.value=latestYr;
 }
+var cInsGlobal=null;
 function updateInsights(){
   var distF=document.getElementById('ins-dist').value;
   var fromYr=parseInt(document.getElementById('ins-yr-from').value);
@@ -778,19 +780,20 @@ function updateInsights(){
   });
   var withDelta=items.map(function(r){var a=hv(r,fromYr),b=hv(r,toYr);return{name:r.r,d:r.d,ci:r.ci||[],v3:a,vt:b,pct:((b-a)/a*100)};});
   withDelta.sort(function(a,b){return b.pct-a.pct;});
-  var top5=withDelta.slice(0,5);
-  var bot5=withDelta.slice(-5).reverse();
-  var maxAbsPct=Math.max.apply(null,withDelta.map(function(r){return Math.abs(r.pct);}));
-  if(!maxAbsPct)maxAbsPct=1;
+  // Fix 1: top5 growth = positive only, bot5 decline = negative only
+  var top5=withDelta.filter(function(r){return r.pct>0;}).slice(0,5);
+  var bot5=withDelta.filter(function(r){return r.pct<0;}).sort(function(a,b){return a.pct-b.pct;}).slice(0,5);
+  var maxGrowthPct=top5.length?Math.max.apply(null,top5.map(function(r){return r.pct;})):1;
+  var maxDeclinePct=bot5.length?Math.max.apply(null,bot5.map(function(r){return Math.abs(r.pct);})):1;
   function distBadge(d){var c={MARATHON:'#9B6FFF',SEMI:'#FF8A50','10KM':'#5CDFA0',AUTRE:'#F472B6'};var l={MARATHON:'Marathon',SEMI:'Semi','10KM':'10km',AUTRE:'Autre'};return'<span class="dp-badge" style="background:'+((c[d]||'#9B6FFF')+'18')+';color:'+(c[d]||'#9B6FFF')+';font-size:10px;padding:2px 8px;margin-right:8px;">'+(l[d]||d)+'</span>';}
-  function renderList(arr,el){
+  function renderList(arr,el,maxPct,isGrowth){
     var html='';
+    if(!arr.length){html='<div style="color:var(--text3);font-size:12px;padding:10px">Aucun</div>';}
     arr.forEach(function(r){
       var sign=r.pct>=0?'+':'';
-      var isUp=r.pct>=0;
-      var barW=Math.min(Math.abs(r.pct)/maxAbsPct*100,100).toFixed(1);
-      var barCol=isUp?'rgba(34,197,94,.15)':'rgba(239,68,68,.15)';
-      var txtCls=isUp?'ins-pct-up':'ins-pct-down';
+      var barW=Math.min(Math.abs(r.pct)/maxPct*100,100).toFixed(1);
+      var barCol=isGrowth?'rgba(34,197,94,.15)':'rgba(239,68,68,.15)';
+      var txtCls=isGrowth?'ins-pct-up':'ins-pct-down';
       html+='<div class="ins-row" style="cursor:pointer;position:relative;border-radius:6px;padding:8px 10px;" data-event="'+r.name.replace(/"/g,'&quot;')+'" onclick="insNav(this.dataset.event)">'
         +'<div style="position:absolute;left:0;top:0;bottom:0;width:'+barW+'%;background:'+barCol+';border-radius:6px;pointer-events:none;"></div>'
         +'<div style="position:relative;display:flex;align-items:center;flex:1;min-width:0;">'+distBadge(r.d)+circBadges(r)+'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+r.name+'</span></div>'
@@ -799,20 +802,41 @@ function updateInsights(){
     });
     document.getElementById(el).innerHTML=html;
   }
-  renderList(top5,'ins-growth');
-  renderList(bot5,'ins-decline');
+  renderList(top5,'ins-growth',maxGrowthPct,true);
+  renderList(bot5,'ins-decline',maxDeclinePct,false);
   // Key metrics
   var allWithTarget=RAW.filter(function(r){if(distF!=='ALL'&&r.d!==distF)return false;var v=hv(r,toYr);return v&&v>0;});
   var totalFin=allWithTarget.reduce(function(s,r){return s+hv(r,toYr);},0);
   var biggest=allWithTarget.length?allWithTarget.reduce(function(a,b){return hv(a,toYr)>hv(b,toYr)?a:b;}):null;
-  var avgGrowth=withDelta.length?(withDelta.reduce(function(s,r){return s+r.pct;},0)/withDelta.length):0;
+  // Median growth
+  var sortedPcts=withDelta.map(function(r){return r.pct;}).sort(function(a,b){return a-b;});
+  var medianGrowth=sortedPcts.length?(sortedPcts.length%2===1?sortedPcts[Math.floor(sortedPcts.length/2)]:(sortedPcts[sortedPcts.length/2-1]+sortedPcts[sortedPcts.length/2])/2):0;
   var growing=withDelta.filter(function(r){return r.pct>0;}).length;
   var declining=withDelta.filter(function(r){return r.pct<0;}).length;
+  var bigCol=biggest?colDist(biggest):'var(--text)';
   document.getElementById('ins-metrics').innerHTML=
-    '<div class="metric"><div class="metric-label">Total finishers '+toYr+'</div><div class="metric-value">'+fmtFull(totalFin)+'</div><div class="metric-sub">'+allWithTarget.length+' evenements</div></div>'
-    +'<div class="metric"><div class="metric-label">Plus grand '+toYr+'</div><div class="metric-value" style="font-size:15px">'+(biggest?biggest.r:'-')+'</div><div class="metric-sub">'+(biggest?fmtFull(hv(biggest,toYr))+' finishers':'-')+'</div></div>'
-    +'<div class="metric"><div class="metric-label">Croissance moyenne</div><div class="metric-value" style="color:'+(avgGrowth>=0?'#22C55E':'#EF4444')+'">'+(avgGrowth>=0?'+':'')+avgGrowth.toFixed(1)+'%</div><div class="metric-sub">'+fromYr+' → '+toYr+'</div></div>'
-    +'<div class="metric"><div class="metric-label">Tendance</div><div class="metric-value" style="font-size:16px"><span style="color:#22C55E">▲ '+growing+'</span> <span style="color:var(--text3)">/</span> <span style="color:#EF4444">▼ '+declining+'</span></div><div class="metric-sub">croissance vs declin</div></div>';
+    '<div class="metric" style="grid-column:span 2"><div class="metric-label">Total finishers '+toYr+'</div><div class="metric-value" style="font-size:28px">'+fmtFull(totalFin)+'</div><div class="metric-sub">'+allWithTarget.length+' evenements</div></div>'
+    +'<div class="metric"><div class="metric-label">Plus grand '+toYr+'</div><div class="metric-value" style="font-size:14px;font-weight:700;color:'+bigCol+'">'+(biggest?biggest.r:'-')+'</div><div class="metric-sub" style="color:'+bigCol+'">'+(biggest?fmtFull(hv(biggest,toYr))+' finishers':'-')+'</div></div>'
+    +'<div class="metric"><div class="metric-label">Croissance (m\u00e9diane)</div><div class="metric-value" style="color:'+(medianGrowth>=0?'#22C55E':'#EF4444')+'">'+(medianGrowth>=0?'+':'')+medianGrowth.toFixed(1)+'%</div><div class="metric-sub">'+fromYr+' \u2192 '+toYr+'</div></div>'
+    +'<div class="metric"><div class="metric-label">Tendance</div><div class="metric-value" style="font-size:13px"><span style="color:#22C55E">'+growing+' en croissance</span> <span style="color:var(--text3)">\u00b7</span> <span style="color:#EF4444">'+declining+' en d\u00e9clin</span></div></div>';
+  // Global chart: total finishers per year
+  var globalYrs=[];
+  for(var y=fromYr;y<=toYr;y++)globalYrs.push(y);
+  var globalTotals=globalYrs.map(function(yr){
+    var total=0;
+    RAW.forEach(function(r){
+      if(distF!=='ALL'&&r.d!==distF)return;
+      var v=(r.hist||{})[yr];
+      if(v&&v>0)total+=v;
+    });
+    return total;
+  });
+  if(cInsGlobal)cInsGlobal.destroy();
+  var ctx=document.getElementById('ins-global-chart');
+  if(ctx){
+    document.getElementById('ins-global-title').textContent='TOTAL FINISHERS TRACK\u00c9S \u00b7 '+fromYr+'-'+toYr;
+    cInsGlobal=new Chart(ctx,{type:'line',data:{labels:globalYrs.map(String),datasets:[{data:globalTotals,borderColor:lc('#5C00D4'),backgroundColor:lc('#5C00D4')+'18',fill:true,tension:0.35,pointRadius:3,pointBackgroundColor:lc('#5C00D4'),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:mkTT({label:function(ctx){return' '+fmtFull(ctx.parsed.y)+' finishers';}})},scales:{x:{grid:{color:mkGRID()},ticks:{color:mkTICK().color,font:{size:10},maxRotation:0}},y:{beginAtZero:false,grid:{color:mkGRID()},ticks:{color:mkTICK().color,font:{size:10},callback:function(v){return fmt(v);}}}}}});
+  }
 }
 
 function ovSearch(){
