@@ -479,19 +479,15 @@ tr:hover td{background:var(--bg2);color:var(--text);}
       <div class="sp-pills" id="sp-pills"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;margin-bottom:2px">
         <div class="sp-list-title">Marques</div>
-        <div class="sp-sort-toggle" style="display:flex;gap:1px;font-size:9px">
-          <span class="sp-sort-btn spc-active" data-sort="exp" onclick="spSetSort('exp')" style="cursor:pointer;padding:1px 5px;border-radius:3px">Finishers</span>
-          <span class="sp-sort-btn" data-sort="events" onclick="spSetSort('events')" style="cursor:pointer;padding:1px 5px;border-radius:3px;color:var(--text3)">Events</span>
+        <div style="display:flex;gap:1px;font-size:9px">
+          <span class="sp-sort-btn spc-active" data-sort="brands" onclick="spSetListMode('brands')" style="cursor:pointer;padding:1px 5px;border-radius:3px">Marques</span>
+          <span class="sp-sort-btn" data-sort="categories" onclick="spSetListMode('categories')" style="cursor:pointer;padding:1px 5px;border-radius:3px;color:var(--text3)">Cat&eacute;gories</span>
         </div>
       </div>
       <div class="sp-blist" id="sp-blist"></div>
     </div>
     <div class="sp-right">
-      <div class="sp-treemap" id="sp-treemap" style="position:relative">
-        <div class="sp-view-toggle" style="position:absolute;top:8px;right:8px;z-index:2;display:flex;gap:1px;background:var(--bg);border-radius:6px;padding:2px;border:1px solid var(--border)">
-          <span class="sp-view-btn spc-active" data-view="brands" onclick="spToggleView(false)" style="cursor:pointer;font-size:10px;padding:3px 8px;border-radius:4px">Marques</span>
-          <span class="sp-view-btn" data-view="events" onclick="spToggleView(true)" style="cursor:pointer;font-size:10px;padding:3px 8px;border-radius:4px;color:var(--text3)">Evenements</span>
-        </div>
+      <div class="sp-treemap" id="sp-treemap">
         <div class="sp-treemap-hint" id="sp-treemap-hint"></div>
       </div>
       <div class="sp-detail" id="sp-detail"></div>
@@ -1371,7 +1367,7 @@ function getExposure(eventName,years){
   });
   return total;
 }
-var _spBS={},_spActiveSector='ALL',_spActiveBrand=null,_spPillSectors=[],_spRegion='ALL',_spViewMode='brands',_spSortMode='exp';
+var _spBS={},_spActiveSector='ALL',_spActiveBrand=null,_spPillSectors=[],_spRegion='ALL',_spListMode='brands';
 function spBuildData(){
   _spBS={};
   var now=new Date().getFullYear();
@@ -1423,8 +1419,8 @@ function spRenderKpis(){
     return'<div style="font-size:9px;color:'+c+';margin-top:2px">'+sign+(Math.abs(d)>=1e6?(Math.abs(d)/1e6).toFixed(1)+'M':Math.abs(d)>=1e3?Math.round(Math.abs(d)/1e3)+'k':Math.abs(d))+' '+prevYrLabel+'</div>';
   }
   var kpis=[
-    [nBrands,'Marques','#22C55E',prev?trendHtml(nBrands,prev.brands,'#22C55E'):''],
-    [nEvents,'\u00c9v\u00e9nements','#38BDF8',prev?trendHtml(nEvents,prev.events,'#38BDF8'):''],
+    [nBrands,'Marques','#22C55E',''],
+    [nEvents,'\u00c9v\u00e9nements','#38BDF8',''],
     [(totalExp/1e6).toFixed(1)+'M','Finishers expos\u00e9s','#F472B6',prev?trendHtml(totalExp,prev.exp,'#F472B6'):'']
   ];
   document.getElementById('sp-kpis').innerHTML=kpis.map(function(k){return'<div class="sp-kpi"><div class="sp-kpi-num" style="color:'+k[2]+'">'+k[0]+'</div><div class="sp-kpi-lbl">'+k[1]+'</div>'+k[3]+'</div>';}).join('')+'<div class="sp-kpi" id="sp-kpi-sector" style="display:none;transition:all .2s"><div class="sp-kpi-num" id="sp-kpi-sector-num"></div><div class="sp-kpi-lbl" id="sp-kpi-sector-lbl"></div></div>';
@@ -1453,8 +1449,8 @@ function initSponsoring(){
   spRenderList();spRenderTreemap();
   spAutoSelect();
 }
-function spSetSort(mode){
-  _spSortMode=mode;
+function spSetListMode(mode){
+  _spListMode=mode;
   document.querySelectorAll('.sp-sort-btn').forEach(function(b){
     b.classList.toggle('spc-active',b.dataset.sort===mode);
     b.style.color=b.dataset.sort===mode?'var(--text)':'var(--text3)';
@@ -1495,16 +1491,43 @@ function spFiltered(){
     if(q&&e[0].toLowerCase().indexOf(q)<0)return false;
     return true;
   });
-  if(_spSortMode==='events')list.sort(function(a,b){return b[1].events.length-a[1].events.length||b[1].exposure-a[1].exposure;});
-  else list.sort(function(a,b){return b[1].exposure-a[1].exposure;});
+  list.sort(function(a,b){return b[1].exposure-a[1].exposure;});
   return list;
 }
 function spFmt(n){return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?Math.round(n/1e3)+'k':String(n);}
 var _spBrandKeys=[];
 function spRenderList(){
+  var bl=document.getElementById('sp-blist');
+  if(_spListMode==='categories'){
+    // Categories view
+    var secData={};
+    Object.entries(_spBS).forEach(function(e){
+      var sec=e[1].sector;
+      if(!secData[sec])secData[sec]={brands:0,exposure:0};
+      secData[sec].brands++;
+      secData[sec].exposure+=e[1].exposure;
+    });
+    var secList=Object.entries(secData).sort(function(a,b){return b[1].exposure-a[1].exposure;});
+    bl.innerHTML=secList.map(function(e,i){
+      var col=_spCols[e[0]]||'#9B6FFF';
+      var act=_spActiveSector===e[0]?' spc-active':'';
+      return '<div class="sp-bitem'+act+'" data-sec="'+e[0]+'">'
+        +'<div class="sp-bdot" style="background:'+col+'"></div>'
+        +'<div class="sp-bname">'+e[0]+'</div>'
+        +'<div class="sp-bexp" style="text-align:right"><div>'+spFmt(e[1].exposure)+'</div><div style="font-size:9px;color:var(--text3)">'+e[1].brands+' marques</div></div></div>';
+    }).join('');
+    bl.onclick=function(e){
+      var el=e.target.closest('.sp-bitem');
+      if(!el)return;
+      var sec=el.getAttribute('data-sec');
+      if(sec)spSetSector(sec);
+    };
+    return;
+  }
+  // Brands view (default)
   var items=spFiltered().slice(0,50);
   _spBrandKeys=items.map(function(e){return e[0];});
-  document.getElementById('sp-blist').innerHTML=items.map(function(e,i){
+  bl.innerHTML=items.map(function(e,i){
     var col=_spCols[e[1].sector]||'#9B6FFF';
     var act=_spActiveBrand===e[0]?' spc-active':'';
     return '<div class="sp-bitem'+act+'" data-bi="'+i+'">'
@@ -1512,7 +1535,6 @@ function spRenderList(){
       +'<div class="sp-bname">'+e[0]+'</div>'
       +'<div class="sp-bexp">'+spFmt(e[1].exposure)+'</div></div>';
   }).join('');
-  var bl=document.getElementById('sp-blist');
   bl.onclick=function(e){
     var el=e.target.closest('.sp-bitem');
     if(!el)return;
@@ -1520,91 +1542,14 @@ function spRenderList(){
     if(_spBrandKeys[i])spSelect(_spBrandKeys[i]);
   };
 }
-function spEventsData(){
-  var now=new Date().getFullYear();
-  var pMinYr=_spPeriod==='5'?now-4:_spPeriod==='3'?now-2:parseInt(_spPeriod)||now;
-  var pMaxYr=_spPeriod==='5'||_spPeriod==='3'?now:pMinYr;
-  var evMap={};
-  SP_PARTNERSHIPS.forEach(function(p){
-    if(_spRegion!=='ALL'&&raceRegion(p.event)!==_spRegion)return;
-    var active=(p.years||[]).some(function(y){return y>=pMinYr&&y<=pMaxYr;});
-    if(!active)return;
-    if(!evMap[p.event])evMap[p.event]={brands:[],types:{}};
-    if(evMap[p.event].brands.indexOf(p.brand)<0)evMap[p.event].brands.push(p.brand);
-    evMap[p.event].types[p.brand]=p.type;
-  });
-  return Object.entries(evMap).sort(function(a,b){return b[1].brands.length-a[1].brands.length;});
-}
-function spSelectEvent(evName){
-  _spActiveBrand=evName;
-  spRenderTreemap();
-  // Show event sponsors in detail
-  var evData=spEventsData().find(function(e){return e[0]===evName;});
-  if(!evData)return;
-  var ev=RAW.find(function(r){return r.r===evName;});
-  var col=ev?colDist(ev):'#9B6FFF';
-  var brands=evData[1].brands;
-  var types=evData[1].types;
-  var byType={title:[],premium:[],major:[],official:[],partner:[]};
-  brands.forEach(function(b){var t=types[b]||'partner';(byType[t]||byType.partner).push(b);});
-  var tConf={title:{label:'Titre',bg:col,text:'#fff'},premium:{label:'Premium',bg:col+'90',text:'#fff'},major:{label:'Majeur',bg:col+'60',text:'#fff'},official:{label:'Officiel',bg:col+'30',text:col},partner:{label:'Fournisseur',bg:'var(--bg3)',text:'var(--text2)'}};
-  var evHtml='';
-  ['title','premium','major','official','partner'].forEach(function(t){
-    var items=byType[t];if(!items.length)return;
-    var tc=tConf[t];
-    evHtml+='<div style="margin-bottom:8px"><span style="display:inline-block;font-size:10px;padding:2px 8px;border-radius:3px;background:'+tc.bg+';color:'+tc.text+';font-weight:600;margin-bottom:4px">'+tc.label+'</span><div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px">';
-    items.forEach(function(b){
-      var sec=(SP_BRANDS[b]||{}).sector||'Autre';
-      var bCol=_spCols[sec]||'#9B6FFF';
-      evHtml+='<span class="sp-evtag" style="cursor:pointer;border-color:'+bCol+'44" data-brand="'+b.replace(/"/g,'&quot;')+'" onclick="spToggleView(false);spSelect(this.dataset.brand)" title="'+b+' ('+sec+')">'+b+'</span>';
-    });
-    evHtml+='</div></div>';
-  });
-  var rawIdx=ev?RAW.indexOf(ev):-1;
-  var navBtn=rawIdx>=0?'<div style="margin-top:8px"><span class="sp-evtag" style="cursor:pointer;color:'+col+';border-color:'+col+'44" onclick="biggestClick('+rawIdx+')">\u2192 Vue d\'ensemble</span></div>':'';
-  var det=document.getElementById('sp-detail');
-  det.innerHTML='<div style="min-width:130px"><div class="sp-detail-name">'+evName+'</div>'+(ev?'<div style="font-size:11px;color:var(--text3)">'+ev.c+' \u00b7 '+ev.p+'</div>':'')+'</div>'
-    +'<div class="sp-detail-stat"><div class="sp-detail-stat-num" style="color:'+col+'">'+brands.length+'</div><div class="sp-detail-stat-lbl">Sponsors</div></div>'
-    +'<div style="flex:1;min-width:180px">'+evHtml+navBtn+'</div>';
-  det.style.display='flex';
-}
-function spToggleView(toEvents){
-  _spViewMode=toEvents?'events':'brands';
-  _spActiveBrand=null;
-  document.getElementById('sp-detail').style.display='none';
-  var btns=document.querySelectorAll('.sp-view-btn');
-  btns.forEach(function(b){b.classList.toggle('spc-active',b.dataset.view===_spViewMode);});
-  spRenderList();spRenderTreemap();
-  spAutoSelect();
-}
 function spAutoSelect(){
-  if(_spViewMode==='brands'){
-    var items=spFiltered();
-    if(items.length)spSelect(items[0][0]);
-  }else{
-    var evs=spEventsData();
-    if(evs.length)spSelectEvent(evs[0][0]);
-  }
+  var items=spFiltered();
+  if(items.length)spSelect(items[0][0]);
 }
 function spRenderTreemap(){
   var container=document.getElementById('sp-treemap');
   var hint=document.getElementById('sp-treemap-hint');
-  Array.from(container.children).forEach(function(c){if(c!==hint&&!c.classList.contains('sp-view-toggle'))container.removeChild(c);});
-  if(_spViewMode==='events'){
-    var evItems=spEventsData().slice(0,50);
-    if(!evItems.length)return;
-    var W=container.clientWidth||700,H=container.clientHeight||350;
-    var nodes=evItems.map(function(e){
-      var ev=RAW.find(function(r){return r.r===e[0];});
-      var evCol=ev?colDist(ev):'#9B6FFF';
-      return{id:e[0],v:Math.max(e[1].brands.length,1),sec:'__ev_'+e[0]};
-    });
-    nodes.forEach(function(n){var ev=RAW.find(function(r){return r.r===n.id;});_spCols[n.sec]=ev?colDist(ev):'#9B6FFF';});
-    var totalV=nodes.reduce(function(s,n){return s+n.v;},0)||1;
-    layout(nodes,0,0,W,H,totalV);
-    if(hint)hint.style.opacity=_spActiveBrand?'0':'1';
-    return;
-  }
+  Array.from(container.children).forEach(function(c){if(c!==hint)container.removeChild(c);});
   var items=spFiltered().slice(0,50);
   if(!items.length)return;
   var W=container.clientWidth||700,H=container.clientHeight||350;
@@ -1636,8 +1581,7 @@ function spRenderTreemap(){
   }
   function place(n,x,y,w,h){
     var col=_spCols[n.sec]||'#9B6FFF';
-    var isEvView=_spViewMode==='events';
-    var act=isEvView?(_spActiveBrand===n.id):(_spActiveBrand===n.id);
+    var act=_spActiveBrand===n.id;
     var bg=act?'var(--bg3)':'var(--bg2)';
     var brd=act?'1px solid '+col:'1px solid var(--border)';
     var d=document.createElement('div');
@@ -1649,7 +1593,7 @@ function spRenderTreemap(){
       // Large: full name + number
       var fs=Math.max(10,Math.min(13,Math.min(w,h)/6));
       inner+='<span style="position:absolute;bottom:'+(h>44?'18':'8')+'px;left:7px;right:5px;font-size:'+fs+'px;font-weight:600;color:'+(act?col:'var(--text)')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none">'+label+'</span>';
-      if(w>100&&h>44)inner+='<span style="position:absolute;bottom:6px;left:7px;font-size:10px;color:var(--text3);pointer-events:none">'+spFmt(n.v)+(isEvView?' marques':' finishers')+'</span>';
+      if(w>100&&h>44)inner+='<span style="position:absolute;bottom:6px;left:7px;font-size:10px;color:var(--text3);pointer-events:none">'+spFmt(n.v)+'</span>';
     }else if(w>=100){
       // Medium: full name, number if tall enough
       var fs=Math.max(9,Math.min(12,Math.min(w,h)/6));
@@ -1662,10 +1606,12 @@ function spRenderTreemap(){
     }
     // Very small (<60px): no label
     d.innerHTML=inner;
-    d.addEventListener('mouseenter',function(){if(act)return;this.style.background='var(--bg3)';this.style.borderColor=col+'88';});
-    d.addEventListener('mouseleave',function(){if(act)return;this.style.background='var(--bg2)';this.style.borderColor='var(--border)';});
-    d.addEventListener('click',function(){if(isEvView){spSelectEvent(n.id);}else{spSelect(n.id);}});
-    d.title=n.id+' \u2022 '+(isEvView?n.v+' marques':n.sec+' \u2022 '+spFmt(n.v)+' finishers');
+    d.setAttribute('data-sp-id',n.id);
+    d.setAttribute('data-sp-col',col);
+    d.addEventListener('mouseenter',function(){if(_spActiveBrand===n.id)return;this.style.background='var(--bg3)';this.style.borderColor=col+'88';});
+    d.addEventListener('mouseleave',function(){if(_spActiveBrand===n.id)return;this.style.background='var(--bg2)';this.style.borderColor='var(--border)';});
+    d.addEventListener('click',function(){spSelect(n.id);});
+    d.title=n.id+' \u2022 '+n.sec+' \u2022 '+spFmt(n.v)+' finishers';
     container.appendChild(d);
   }
   layout(nodes,0,0,W,H,totalV);
@@ -1680,9 +1626,29 @@ function spChangePeriod(val){
   spRenderList();spRenderTreemap();
   spAutoSelect();
 }
+function spHighlight(brandId){
+  // Update list selection
+  document.querySelectorAll('.sp-bitem').forEach(function(el){
+    var i=parseInt(el.getAttribute('data-bi')||'0');
+    el.classList.toggle('spc-active',_spBrandKeys[i]===brandId);
+  });
+  // Update treemap borders
+  var container=document.getElementById('sp-treemap');
+  container.querySelectorAll('[data-sp-id]').forEach(function(el){
+    var id=el.getAttribute('data-sp-id');
+    var col=el.getAttribute('data-sp-col')||'var(--border)';
+    if(id===brandId){
+      el.style.borderColor=col;
+      el.style.background='var(--bg3)';
+    }else{
+      el.style.borderColor='var(--border)';
+      el.style.background='var(--bg2)';
+    }
+  });
+}
 function spSelect(brandId){
   _spActiveBrand=brandId;
-  spRenderList();spRenderTreemap();
+  spHighlight(brandId);
   var bs=_spBS[brandId];var info=SP_BRANDS[brandId]||{};
   var col=_spCols[bs.sector]||'#9B6FFF';
   var tConf={
