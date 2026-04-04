@@ -742,7 +742,10 @@ function switchTab(name){
   if(name==='temps')updateTemps();
   if(name==='winners')updateWinners();
   if(name==='data')filterTable();
-  if(name==='sponsoring'&&!window._spInit){window._spInit=true;initSponsoring();}
+  if(name==='sponsoring'){
+    if(!window._spInit){window._spInit=true;initSponsoring();}
+    else{setTimeout(function(){spRenderTreemap();spHighlight(_spActiveBrand);},50);}
+  }
 }
 function insNav(name){
   var idx=RAW.findIndex(function(r){return r.r===name;});
@@ -1433,7 +1436,6 @@ function initSponsoring(){
   spRenderKpis();
   var secSorted=Object.entries(_spSecExp).filter(function(s){return s[0]!=='ALL';}).sort(function(a,b){return b[1]-a[1];});
   _spPillSectors=['ALL'].concat(secSorted.map(function(s){return s[0];}));
-  _spSecExp=secExp;_spSecExp['ALL']=totalExp;
   document.getElementById('sp-pills').innerHTML=_spPillSectors.map(function(s,i){
     var col=i===0?null:(_spCols[s]||'#9B6FFF');
     var st=col?(' style="border-color:'+col+'55;color:'+col+'"'):'';
@@ -1446,8 +1448,8 @@ function initSponsoring(){
     spSetSector(_spPillSectors[i]||'ALL');
   });
   document.getElementById('sp-search-inp').oninput=function(){spRenderList();spRenderTreemap();};
-  spRenderList();spRenderTreemap();
-  spAutoSelect();
+  spRenderList();
+  setTimeout(function(){spRenderTreemap();spAutoSelect();},50);
 }
 function spSetListMode(mode){
   _spListMode=mode;
